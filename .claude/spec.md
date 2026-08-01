@@ -169,10 +169,27 @@ Cada app tiene su propio `.env`, versionado como `.env.example` sin valores real
 
 ## Calidad y CI
 
-- **Husky `pre-push`**: ejecuta el chequeo de tipos y el build de frontend y backend. Si algo
-  falla, el push se aborta.
-- **GitHub Actions**: workflow que corre en los pull requests de `develop` hacia `master`,
-  instalando dependencias y ejecutando lint, chequeo de tipos y build de ambas apps.
+- **Husky `pre-push`** (`.husky/pre-push`): corre en orden `lint:check`, `typecheck` y `build`,
+  primero de backend y después de frontend. Usa `set -e`, así que el primer comando que falle
+  aborta el push.
+  - `backend`: `lint:check` = `eslint "{src,apps,libs,test}/**/*.ts"`,
+    `typecheck` = `tsc --noEmit -p tsconfig.json`, `build` = `nest build`.
+  - `frontend`: `lint:check` = `eslint --max-warnings 0 .`, `typecheck` = `tsc -b --noEmit`,
+    `build` = `tsc -b && vite build`.
+  - **`lint:check` nunca lleva `--fix`**: el hook valida, no corrige. Para corregir está el
+    script `lint` de cada app, que se corre a mano.
+  - El `package.json` de la raíz tiene el script `prepare: husky` (instala los hooks al correr
+    `npm install`) y los atajos `lint:check`, `typecheck` y `build` que ejecutan ambas apps.
+- **GitHub Actions** (`.github/workflows/ci.yml`): se dispara en los pull requests hacia
+  `master` y en los push a `develop`.
+  - Dos jobs independientes que corren en paralelo, `backend` y `frontend`, cada uno sobre
+    Node 22 con caché de npm apuntada a su propio `package-lock.json`.
+  - Ambos ejecutan `npm ci` y después `lint:check`, `typecheck` y `build` — los mismos scripts
+    que corre el `pre-push`, así que lo que pasa en local pasa en el CI.
+  - El job de backend agrega `npx prisma generate` antes de lintear: el cliente generado no se
+    versiona (está en `backend/.gitignore`), así que sin ese paso no compila.
+  - `concurrency` con `cancel-in-progress` para que un push nuevo cancele el run anterior de la
+    misma rama.
 
 ## Criterios de aceptación
 
@@ -191,7 +208,9 @@ Una funcionalidad se considera correcta cuando:
 
 ## Pendiente de instalar
 
-Prisma ya está incorporado (`backend/prisma/schema.prisma`). Todavía faltan: Redis,
-`@nestjs/jwt`, `@nestjs/throttler`, `cookie-parser`, bcrypt, nodemailer, multer
-(`@types/multer`), cloudinary, TanStack Query, Tailwind v4 y Husky. Actualizar esta sección a
-medida que se agreguen.
+Ya incorporados: Prisma (`@prisma/client`, `@prisma/adapter-pg`, `pg`), Husky
+(`.husky/pre-push`) y Tailwind v4 (`tailwindcss`, `@tailwindcss/vite`).
+
+Todavía faltan: Redis, `@nestjs/jwt`, `@nestjs/throttler`, `cookie-parser`, bcrypt, nodemailer,
+multer (`@types/multer`), cloudinary y TanStack Query. Actualizar esta sección a medida que se
+agreguen.

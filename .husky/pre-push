@@ -1,0 +1,21 @@
+set -e # exit if any command fails
+
+echo "[1/6] Backend: lint"
+npm --prefix backend run lint:check
+
+echo "[2/6] Backend: typecheck"
+npm --prefix backend run typecheck
+
+echo "[3/6] Backend: build"
+npm --prefix backend run build
+
+echo "[4/6] Frontend: lint"
+npm --prefix frontend run lint:check
+
+echo "[5/6] Frontend: typecheck"
+npm --prefix frontend run typecheck
+
+echo "[6/6] Frontend: build"
+npm --prefix frontend run build
+
+echo "Pre-push OK"
