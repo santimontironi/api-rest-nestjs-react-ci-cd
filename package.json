@@ -1,5 +1,13 @@
 {
-  "dependencies": {
+  "name": "nestjs-react-ci-cd",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "lint:check": "npm --prefix backend run lint:check && npm --prefix frontend run lint:check",
+    "typecheck": "npm --prefix backend run typecheck && npm --prefix frontend run typecheck",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build"
+  },
+  "devDependencies": {
     "husky": "^9.1.7"
   }
 }
