@@ -91,7 +91,8 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 
 ## Confirmación de cuenta por email
 
-- El envío se hace con **Nodemailer** sobre SMTP, encapsulado en un módulo `mail` del backend.
+- El envío se hace con **Nodemailer** usando el servicio `gmail`, encapsulado en un módulo `mail`
+  del backend. El transporter se configura en `backend/src/config/mail.config.ts`.
 - El token de confirmación es un **JWT**, firmado con un secret propio
   (`JWT_VERIFICATION_SECRET`), distinto del secret de sesión. Vence a las **24 horas**
   (`JWT_VERIFICATION_EXPIRES_IN`).
@@ -104,7 +105,8 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
   vencido, con opción de reenviar).
 - Un fallo en el envío del mail **no debe dejar el registro a medias**: si el mail no se pudo
   enviar, se informa el error y el usuario puede pedir el reenvío.
-- En desarrollo se usa una cuenta SMTP de prueba; no se envían mails reales.
+- Se usa una cuenta de Gmail con **contraseña de aplicación** (requiere 2FA activo en la cuenta);
+  la contraseña normal no sirve. En desarrollo los mails se envían de verdad.
 
 ## Endpoints de productos
 
@@ -161,7 +163,7 @@ Cada app tiene su propio `.env`, versionado como `.env.example` sin valores real
 
 **Backend:** `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`,
 `CORS_ORIGIN`, `NODE_ENV`, `JWT_VERIFICATION_SECRET`, `JWT_VERIFICATION_EXPIRES_IN`,
-`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`,
+`EMAIL_USER` (cuenta de Gmail remitente), `EMAIL_PASS` (contraseña de aplicación),
 `APP_URL` (base del frontend, usada para armar el link de confirmación),
 `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
 
@@ -209,8 +211,10 @@ Una funcionalidad se considera correcta cuando:
 ## Pendiente de instalar
 
 Ya incorporados: Prisma (`@prisma/client`, `@prisma/adapter-pg`, `pg`), Husky
-(`.husky/pre-push`) y Tailwind v4 (`tailwindcss`, `@tailwindcss/vite`).
+(`.husky/pre-push`), Tailwind v4 (`tailwindcss`, `@tailwindcss/vite`), Nodemailer
+(`nodemailer`, `@types/nodemailer`) y la carga de variables de entorno (`@nestjs/config`,
+`dotenv`).
 
-Todavía faltan: Redis, `@nestjs/jwt`, `@nestjs/throttler`, `cookie-parser`, bcrypt, nodemailer,
+Todavía faltan: Redis, `@nestjs/jwt`, `@nestjs/throttler`, `cookie-parser`, bcrypt,
 multer (`@types/multer`), cloudinary y TanStack Query. Actualizar esta sección a medida que se
 agreguen.
