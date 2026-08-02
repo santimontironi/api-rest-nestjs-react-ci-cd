@@ -26,6 +26,18 @@ legible, prolijo, mantenible y escalable.
 - Archivos en `kebab-case`, clases en `PascalCase`, variables y funciones en `camelCase`.
 - Un archivo, una responsabilidad. Si un archivo hace dos cosas, separarlo.
 - Nada de secretos hardcodeados: todo por variables de entorno.
+- **No declarar `type` ni `interface` para todo.** Se declaran solo cuando el tipo se reutiliza en
+  más de un lugar o cuando TypeScript no puede inferirlo. Un objeto intermedio, una variable local
+  o el retorno de una función que ya se infiere solo **no llevan tipo explícito**.
+  - Si el tipo ya existe en otro lado, **derivarlo**: `z.infer`, `Prisma.UserGetPayload`,
+    `ReturnType`, `Pick`/`Omit`. Nunca reescribir a mano una forma que ya está modelada.
+  - Sí llevan tipo explícito: los props de un componente, los DTOs y las firmas públicas de un
+    service. Son los bordes; el resto se infiere.
+- **Las constantes van a `utils/consts/`**, un archivo por dominio, en `kebab-case` y con sufijo
+  `-consts.ts` (`auth-consts.ts`, `products-consts.ts`, `upload-consts.ts`). Nada de valores
+  fijos sueltos dentro de componentes o services: si es un valor repetido o un "número mágico"
+  (límites, tamaños máximos, tiempos de expiración, mensajes fijos, opciones de un select),
+  se declara ahí y se importa. Los secretos siguen yendo por variables de entorno, no acá.
 
 ## Backend (NestJS)
 
@@ -64,6 +76,33 @@ legible, prolijo, mantenible y escalable.
   `z.infer`; no se declaran interfaces duplicadas a mano.
 - **React Hook Form** con resolver de Zod para todos los formularios. Nada de manejar inputs con
   `useState`.
+- **Componentes repetidos: se escriben a mano, no se mapean.** Cuando un componente reutilizable
+  se usa una cantidad **conocida y fija** de veces en el padre, se renderiza esa cantidad de veces
+  en el JSX, pasando los props explícitamente en cada uno. Prohibido armar un array de objetos de
+  configuración y recorrerlo con `.map()` solo para ahorrar líneas: esconde los props reales,
+  obliga a saltar a otro archivo para entender qué se está renderizando y agrega una `key`
+  artificial.
+
+  ```tsx
+  // ❌ No
+  const fields = [
+    { name: 'email', label: 'Email', type: 'email' },
+    { name: 'password', label: 'Contraseña', type: 'password' },
+  ];
+  return fields.map((f) => <Input key={f.name} {...f} />);
+
+  // ✅ Sí
+  return (
+    <>
+      <Input name="email" label="Email" type="email" />
+      <Input name="password" label="Contraseña" type="password" />
+    </>
+  );
+  ```
+
+  **La excepción son los datos dinámicos**: si la cantidad de elementos sale de la API o del estado
+  (lista de productos, resultados de una búsqueda), ahí `.map()` es lo correcto y obligatorio.
+  La regla aplica al contenido fijo escrito por nosotros, no a las colecciones.
 - **Tailwind v4** para todos los estilos. Sin CSS suelto ni estilos inline salvo valores dinámicos.
 - Estados de carga y error siempre visibles: nada de pantallas en blanco ni fallos silenciosos.
 
@@ -78,6 +117,8 @@ backend/src/
   cloudinary/    CloudinaryService (subida de imágenes)
   prisma/
   redis/
+  utils/
+    consts/      <dominio>-consts.ts
   main.ts
 
 frontend/src/
@@ -86,6 +127,8 @@ frontend/src/
   features/      auth/, products/ (páginas, hooks y esquemas del dominio)
   hooks/
   schemas/       esquemas de zod
+  utils/
+    consts/      <dominio>-consts.ts
   lib/
   App.tsx
 ```
