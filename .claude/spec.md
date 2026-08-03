@@ -93,14 +93,15 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 
 - El envío se hace con **Nodemailer** usando el servicio `gmail`, encapsulado en un módulo `mail`
   del backend. El transporter se configura en `backend/src/config/mail.config.ts`.
-- El token de confirmación es un **JWT**, firmado con un secret propio
-  (`JWT_VERIFICATION_SECRET`), distinto del secret de sesión. Vence a las **24 horas**
-  (`JWT_VERIFICATION_EXPIRES_IN`).
+- El token de confirmación es un **JWT** firmado con el mismo secret que el de sesión
+  (`JWT_SECRET`). Vence a las **24 horas**, valor que va hardcodeado en el `signAsync` que lo
+  emite, no en una variable de entorno.
 - Su payload lleva `sub` (id del usuario) y `type: 'email-verification'`. Al confirmar se valida
   ese `type`, de modo que un token de sesión no sirve como token de confirmación ni al revés.
+  Esa validación del `type` es lo que separa ambos tokens: por eso alcanza con un único secret.
 - El token **no se guarda en la base**: su vencimiento viaja en el propio JWT. Como la
   confirmación solo pone `emailVerified` en `true`, reusar un token ya usado no tiene efecto.
-- El mail contiene un link al frontend: `${APP_URL}/verify-email?token=...`. Esa página del
+- El mail contiene un link al frontend: `${FRONTEND_URL}/verify-email?token=...`. Esa página del
   frontend llama al endpoint de confirmación y muestra el resultado (éxito, token inválido o
   vencido, con opción de reenviar).
 - Un fallo en el envío del mail **no debe dejar el registro a medias**: si el mail no se pudo
@@ -161,11 +162,14 @@ un producto invalida las claves afectadas.
 
 Cada app tiene su propio `.env`, versionado como `.env.example` sin valores reales.
 
-**Backend:** `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`,
-`CORS_ORIGIN`, `NODE_ENV`, `JWT_VERIFICATION_SECRET`, `JWT_VERIFICATION_EXPIRES_IN`,
+**Backend:** `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET` (único secret, tanto para el token de
+sesión como para el de confirmación), `PORT`, `CORS_ORIGIN`, `NODE_ENV`,
 `EMAIL_USER` (cuenta de Gmail remitente), `EMAIL_PASS` (contraseña de aplicación),
-`APP_URL` (base del frontend, usada para armar el link de confirmación),
+`FRONTEND_URL` (base del frontend, usada para armar el link de confirmación),
 `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+
+Las duraciones de los tokens **no** son variables de entorno: van hardcodeadas donde se firman
+(`1d` para el de sesión en `JwtModule`, `24h` para el de confirmación en su `signAsync`).
 
 **Frontend:** `VITE_API_URL`.
 
@@ -212,9 +216,10 @@ Una funcionalidad se considera correcta cuando:
 
 Ya incorporados: Prisma (`@prisma/client`, `@prisma/adapter-pg`, `pg`), Husky
 (`.husky/pre-push`), Tailwind v4 (`tailwindcss`, `@tailwindcss/vite`), Nodemailer
-(`nodemailer`, `@types/nodemailer`) y la carga de variables de entorno (`@nestjs/config`,
-`dotenv`).
+(`nodemailer`, `@types/nodemailer`), la carga de variables de entorno (`@nestjs/config`,
+`dotenv`), JWT (`@nestjs/jwt`), bcrypt (`bcrypt`, `@types/bcrypt`) y la validación de DTOs
+(`class-validator`, `class-transformer`).
 
-Todavía faltan: Redis, `@nestjs/jwt`, `@nestjs/throttler`, `cookie-parser`, bcrypt,
+Todavía faltan: Redis, `@nestjs/throttler`, `cookie-parser`,
 multer (`@types/multer`), cloudinary y TanStack Query. Actualizar esta sección a medida que se
 agreguen.
