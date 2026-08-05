@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@theme {
+    --color-primary: #b81104;
+    --color-secondary: #fffacd;
+    --color-tertiary: #000812;
+}
+
+body{
+    font-family: "Nata Sans", sans-serif;
+}
