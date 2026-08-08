@@ -1,7 +1,10 @@
 import { Body, Controller, Get, Post, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
-import { registerSchema, type RegisterInput } from '../../../shared/schemas/auth.schema';
+import {
+  registerSchema,
+  type RegisterInput,
+} from '../../../shared/schemas/auth.schema';
 
 @Controller('auth')
 export class AuthController {
