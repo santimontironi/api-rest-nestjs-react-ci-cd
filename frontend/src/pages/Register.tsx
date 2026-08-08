@@ -1,6 +1,22 @@
 import { Link } from "react-router-dom"
+import {useForm} from "react-hook-form"
+import {zodResolver} from "@hookform/resolvers/zod"
+import {registerSchema} from "../../../shared/schemas/auth.schema"
+import {useRegister} from "../hooks/useRegister"
+import type { RegisterCredentials } from "../types/auth.types"
 
 const Register = () => {
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<RegisterCredentials>({
+    resolver: zodResolver(registerSchema)
+  })
+
+  const { mutate: registerUser, isPending, error, isSuccess } = useRegister()
+
+  const submitForm = (data: RegisterCredentials) => {
+    registerUser(data)
+    reset()
+  }
+
   return (
     <div className="min-h-screen bg-secondary md:grid md:grid-cols-2">
       <aside className="relative z-10 flex flex-col items-center justify-center gap-10 overflow-hidden bg-tertiary px-6 py-16 text-justify shadow-[0_24px_48px_-12px] shadow-tertiary/30 md:gap-14 md:px-10 md:py-20 md:shadow-[24px_0_48px_-12px] xl:px-16 2xl:px-24">
@@ -33,7 +49,19 @@ const Register = () => {
             Todos los campos son obligatorios.
           </p>
 
-          <form className="mt-8 flex flex-col gap-5 md:mt-10 xl:gap-6">
+          {isSuccess && (
+            <p className="mt-4 rounded-lg bg-tertiary/10 px-3.5 py-2.5 text-center text-sm text-tertiary">
+              Cuenta creada. Revisá tu email para confirmarla.
+            </p>
+          )}
+
+          {error && (
+            <p className="mt-4 rounded-lg bg-primary/10 px-3.5 py-2.5 text-center text-sm text-primary">
+              {error.message}
+            </p>
+          )}
+
+          <form className="mt-8 flex flex-col gap-5 md:mt-10 xl:gap-6" onSubmit={handleSubmit(submitForm)}>
             <div className="grid gap-5 md:grid-cols-2 xl:gap-6">
               <div className="flex flex-col gap-1.5">
                 <label
@@ -44,12 +72,15 @@ const Register = () => {
                 </label>
                 <input
                   id="name"
-                  name="name"
                   type="text"
                   autoComplete="given-name"
                   placeholder="Escriba su nombre..."
+                  {...register("name")}
                   className="h-11 w-full rounded-lg border border-tertiary/10 bg-tertiary/5 px-3.5 text-base text-tertiary placeholder:text-tertiary/50 transition-colors duration-150 outline-none focus-visible:border-primary focus-visible:bg-secondary focus-visible:ring-2 focus-visible:ring-primary/20"
                 />
+                {errors.name && (
+                  <p className="text-left text-sm text-primary">{errors.name.message}</p>
+                )}
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -61,12 +92,15 @@ const Register = () => {
                 </label>
                 <input
                   id="surname"
-                  name="surname"
                   type="text"
                   autoComplete="family-name"
                   placeholder="Escriba su apellido..."
+                  {...register("surname")}
                   className="h-11 w-full rounded-lg border border-tertiary/10 bg-tertiary/5 px-3.5 text-base text-tertiary placeholder:text-tertiary/50 transition-colors duration-150 outline-none focus-visible:border-primary focus-visible:bg-secondary focus-visible:ring-2 focus-visible:ring-primary/20"
                 />
+                {errors.surname && (
+                  <p className="text-left text-sm text-primary">{errors.surname.message}</p>
+                )}
               </div>
             </div>
 
@@ -79,12 +113,15 @@ const Register = () => {
               </label>
               <input
                 id="email"
-                name="email"
                 type="email"
                 autoComplete="email"
                 placeholder="Escriba su email..."
+                {...register("email")}
                 className="h-11 w-full rounded-lg border border-tertiary/10 bg-tertiary/5 px-3.5 text-base text-tertiary placeholder:text-tertiary/50 transition-colors duration-150 outline-none focus-visible:border-primary focus-visible:bg-secondary focus-visible:ring-2 focus-visible:ring-primary/20"
               />
+              {errors.email && (
+                <p className="text-left text-sm text-primary">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -96,19 +133,23 @@ const Register = () => {
               </label>
               <input
                 id="password"
-                name="password"
                 type="password"
                 autoComplete="new-password"
                 placeholder="Escriba su contraseña..."
+                {...register("password")}
                 className="h-11 w-full rounded-lg border border-tertiary/10 bg-tertiary/5 px-3.5 text-base text-tertiary placeholder:text-tertiary/50 transition-colors duration-150 outline-none focus-visible:border-primary focus-visible:bg-secondary focus-visible:ring-2 focus-visible:ring-primary/20"
               />
+              {errors.password && (
+                <p className="text-left text-sm text-primary">{errors.password.message}</p>
+              )}
             </div>
 
             <button
               type="submit"
-              className="mt-3 flex h-11 w-full items-center justify-center rounded-lg bg-primary px-6 text-base font-semibold text-secondary transition-colors duration-150 outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:cursor-not-allowed disabled:opacity-50 md:h-12"
+              disabled={isPending}
+              className="mt-3 flex h-11 cursor-pointer w-full items-center justify-center rounded-lg bg-primary px-6 text-base font-semibold text-secondary transition-colors duration-150 outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:cursor-not-allowed disabled:opacity-50 md:h-12"
             >
-              Crear cuenta
+              {isPending ? "Creando cuenta..." : "Crear cuenta"}
             </button>
           </form>
 
@@ -116,7 +157,7 @@ const Register = () => {
             ¿Ya tenés cuenta?{" "}
             <Link
               to="/"
-              className="rounded-sm font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary/50"
+              className="rounded-sm cursor-pointer font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary/50"
             >
               Iniciar sesión
             </Link>

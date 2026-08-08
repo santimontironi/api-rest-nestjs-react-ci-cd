@@ -73,10 +73,14 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 
 ## Autenticación
 
+Todas las rutas del backend van prefijadas con **`/api`** (`app.setGlobalPrefix('api')` en
+`main.ts`). Las rutas mencionadas en esta spec se listan sin ese prefijo por brevedad: por
+ejemplo, `POST /auth/register` corresponde en la práctica a `POST /api/auth/register`.
+
 - **Registro** (`POST /auth/register`): valida que el email no exista, hashea la contraseña y
   crea el usuario con `emailVerified: false`. Genera un token de confirmación y **envía el mail
-  de confirmación**. Devuelve el usuario sin la contraseña. **No** inicia sesión.
-- **Confirmación de cuenta** (`GET /auth/verify-email?token=...`): verifica la firma y el
+  de confirmación**. Devuelve un mensaje de confirmación, nunca el usuario. **No** inicia sesión.
+- **Confirmación de cuenta** (`GET /auth/verify-email/:token`): verifica la firma y el
   vencimiento del JWT y marca `emailVerified: true`. Si el token es inválido o está vencido,
   responde `400`. Si la cuenta ya estaba confirmada, responde `200` (operación idempotente).
 - **Reenvío de confirmación** (`POST /auth/resend-verification`): emite un JWT nuevo y vuelve
@@ -94,16 +98,17 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 - El envío se hace con **Nodemailer** usando el servicio `gmail`, encapsulado en un módulo `mail`
   del backend. El transporter se configura en `backend/src/config/mail.config.ts`.
 - El token de confirmación es un **JWT** firmado con el mismo secret que el de sesión
-  (`JWT_SECRET`). Vence a las **24 horas**, valor que va hardcodeado en el `signAsync` que lo
+  (`JWT_SECRET`). Vence a la **1 hora**, valor que va hardcodeado en el `signAsync` que lo
   emite, no en una variable de entorno.
 - Su payload lleva `sub` (id del usuario) y `type: 'email-verification'`. Al confirmar se valida
   ese `type`, de modo que un token de sesión no sirve como token de confirmación ni al revés.
   Esa validación del `type` es lo que separa ambos tokens: por eso alcanza con un único secret.
 - El token **no se guarda en la base**: su vencimiento viaja en el propio JWT. Como la
   confirmación solo pone `emailVerified` en `true`, reusar un token ya usado no tiene efecto.
-- El mail contiene un link al frontend: `${FRONTEND_URL}/verify-email?token=...`. Esa página del
-  frontend llama al endpoint de confirmación y muestra el resultado (éxito, token inválido o
-  vencido, con opción de reenviar).
+- El mail contiene un link al frontend: `${FRONTEND_URL}/confirmar/:token`. Esa página del
+  frontend toma el token de la ruta, llama al endpoint de confirmación
+  (`GET /auth/verify-email/:token`) y muestra el resultado (éxito, token inválido o vencido,
+  con opción de reenviar).
 - Un fallo en el envío del mail **no debe dejar el registro a medias**: si el mail no se pudo
   enviar, se informa el error y el usuario puede pedir el reenvío.
 - Se usa una cuenta de Gmail con **contraseña de aplicación** (requiere 2FA activo en la cuenta);
@@ -169,7 +174,7 @@ sesión como para el de confirmación), `PORT`, `CORS_ORIGIN`, `NODE_ENV`,
 `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
 
 Las duraciones de los tokens **no** son variables de entorno: van hardcodeadas donde se firman
-(`1d` para el de sesión en `JwtModule`, `24h` para el de confirmación en su `signAsync`).
+(`1d` para el de sesión en `JwtModule`, `1h` para el de confirmación en su `signAsync`).
 
 **Frontend:** `VITE_API_URL`.
 

@@ -14,7 +14,7 @@ export function verificationEmailHtml(link: string): string {
         <tr>
           <td style="color:#000812;font-size:15px;line-height:22px;padding-bottom:24px">
             Para terminar el registro, confirmá tu dirección de email.
-            El link vence en 24 horas.
+            El link vence en 1 hora.
           </td>
         </tr>
         <tr>

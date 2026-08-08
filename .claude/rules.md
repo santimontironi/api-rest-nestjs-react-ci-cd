@@ -39,6 +39,17 @@ legible, prolijo, mantenible y escalable.
   (límites, tamaños máximos, tiempos de expiración, mensajes fijos, opciones de un select),
   se declara ahí y se importa. Los secretos siguen yendo por variables de entorno, no acá.
 
+## Shared (`shared/`)
+
+- Los esquemas de **Zod** que definen la forma de un payload usado tanto en el backend como en el
+  frontend viven en `shared/schemas/`, un archivo por dominio (`auth.schema.ts`, ...). Es la fuente
+  de verdad única: ni el backend ni el frontend redefinen esas reglas por su cuenta.
+- No es un workspace de npm: `shared/` no tiene `package.json` propio. Backend y frontend lo
+  importan por **ruta relativa** (`../../../shared/schemas/...`). `zod` está instalado tanto en la
+  raíz del repo como en `backend/` y `frontend/`, porque Node resuelve `node_modules` subiendo
+  desde la carpeta del archivo que hace el `import`, y `shared/` no es descendiente de ninguno de
+  los dos paquetes.
+
 ## Backend (NestJS)
 
 - **Arquitectura modular**: un módulo por dominio (`auth`, `products`, `users`, `mail`,
@@ -48,7 +59,9 @@ legible, prolijo, mantenible y escalable.
 - **Prisma solo se usa dentro de los services**, nunca en un controller.
 - Un `PrismaService` único, inyectado; no instanciar `PrismaClient` suelto.
 - **DTOs con `class-validator`** para toda entrada. `ValidationPipe` global con `whitelist: true`
-  y `forbidNonWhitelisted: true`.
+  y `forbidNonWhitelisted: true`. **Excepción:** si el payload tiene un esquema en `shared/schemas/`,
+  se valida con ese esquema vía `ZodValidationPipe` (`backend/src/common/pipes/zod-validation.pipe.ts`)
+  en el controller, en vez de un DTO de `class-validator`.
 - **Nunca devolver el campo `password`.** Excluirlo explícitamente en el `select` de Prisma.
 - El **JWT de confirmación viaja únicamente en el mail**, nunca en el cuerpo de una respuesta
   ni en un log.
@@ -109,6 +122,9 @@ legible, prolijo, mantenible y escalable.
 ## Estructura de carpetas
 
 ```
+shared/
+  schemas/       esquemas de zod compartidos entre backend y frontend
+
 backend/src/
   auth/          register, login, logout, verificación de email, guards, estrategia jwt
   users/
@@ -117,6 +133,8 @@ backend/src/
   cloudinary/    CloudinaryService (subida de imágenes)
   prisma/
   redis/
+  common/
+    pipes/       pipes de Nest transversales (ZodValidationPipe, ...)
   utils/
     consts/      <dominio>-consts.ts
   main.ts

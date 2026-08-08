@@ -1,21 +1,24 @@
 set -e # exit if any command fails
 
-echo "[1/6] Backend: lint"
+echo "[1/7] Backend: prisma generate"
+npm --prefix backend run prisma:generate
+
+echo "[2/7] Backend: lint"
 npm --prefix backend run lint:check
 
-echo "[2/6] Backend: typecheck"
+echo "[3/7] Backend: typecheck"
 npm --prefix backend run typecheck
 
-echo "[3/6] Backend: build"
+echo "[4/7] Backend: build"
 npm --prefix backend run build
 
-echo "[4/6] Frontend: lint"
+echo "[5/7] Frontend: lint"
 npm --prefix frontend run lint:check
 
-echo "[5/6] Frontend: typecheck"
+echo "[6/7] Frontend: typecheck"
 npm --prefix frontend run typecheck
 
-echo "[6/6] Frontend: build"
+echo "[7/7] Frontend: build"
 npm --prefix frontend run build
 
 echo "Pre-push OK"
