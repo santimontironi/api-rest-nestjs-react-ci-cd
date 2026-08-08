@@ -50,10 +50,10 @@ export class AuthService {
   }
 
   async confirmEmail(token: string) {
-    let payload: { sub: number; type: string };
+    let payload: { sub: string; type: string };
     try {
       payload = await this.jwtService.verifyAsync<{
-        sub: number;
+        sub: string;
         type: string;
       }>(token);
     } catch {

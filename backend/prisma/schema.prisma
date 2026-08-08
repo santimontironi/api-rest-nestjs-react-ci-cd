@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id            String      @id @default(uuid())
+  id            String   @id @default(uuid())
   email         String   @unique
   password      String
   name          String
@@ -25,7 +25,7 @@ model User {
 }
 
 model Product {
-  id          String      @id @default(uuid())
+  id          String   @id @default(uuid())
   image       String
   name        String
   description String
