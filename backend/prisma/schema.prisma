@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
+  id            String      @id @default(uuid())
   email         String   @unique
   password      String
   name          String
@@ -25,10 +25,11 @@ model User {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
+  id          String      @id @default(uuid())
   image       String
   name        String
   description String
+  category    String
   price       Float
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
