@@ -3,7 +3,8 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema, type ForgotPasswordInput, type LoginInput, type RegisterInput, type ResetPasswordInput } from '../../../shared/schemas/auth.schema';
+import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from '../../../shared/schemas/auth.schema';
+import type { ForgotPasswordInput, LoginInput, RegisterInput, ResetPasswordInput } from '../../../shared/schemas/auth.schema';
 
 @Controller('auth')
 export class AuthController {
@@ -35,7 +36,7 @@ export class AuthController {
   }
 
   @Post('reset-password/:token')
-  resetPassword( @Param('token') token: string, @Body(new ZodValidationPipe(resetPasswordSchema)) dto: ResetPasswordInput ) {
+  resetPassword(@Param('token') token: string, @Body(new ZodValidationPipe(resetPasswordSchema)) dto: ResetPasswordInput) {
     return this.authService.resetPassword(token, dto);
   }
 
