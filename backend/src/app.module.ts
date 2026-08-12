@@ -6,12 +6,6 @@ import { MailModule } from './mail/mail.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    PrismaModule,
-    AuthModule,
-    ProductsModule,
-    MailModule,
-  ],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, ProductsModule, MailModule],
 })
 export class AppModule {}

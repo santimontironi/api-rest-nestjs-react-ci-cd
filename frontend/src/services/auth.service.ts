@@ -1,10 +1,8 @@
 import api from "./api";
-import type { RegisterCredentials } from "../types/auth.types";
+import type { LoginCredentials } from "../types/auth.types";
+import { userSchema } from "../../../shared/schemas/auth.schema";
 
-export const registerService = async (credentials: RegisterCredentials) => {
-    await api.post("/auth/register", credentials);
-}
-
-export const confirmEmailService = async (token: string) => {
-    await api.get(`/auth/confirm-email/${token}`);
+export const loginService = async (credentials: LoginCredentials) => {
+    const response = await api.post("/auth/login", credentials);
+    return userSchema.parse(response.data);
 }

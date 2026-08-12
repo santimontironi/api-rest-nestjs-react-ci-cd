@@ -1,8 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { QueryClientProvider } from '@tanstack/react-query'
-import Register from "./pages/Register"
 import Login from "./pages/Login"
-import Confirm from "./pages/Confirm"
+import ResetPassword from "./pages/ResetPassword"
 import queryClient from "./queryClient"
 
 const App = () => {
@@ -11,9 +10,7 @@ const App = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/registro" element={<Register />} />
-          <Route path="/confirmar/:token" element={<Confirm />} />
-          <Route />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

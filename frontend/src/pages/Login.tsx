@@ -1,6 +1,23 @@
 import { Link } from "react-router-dom"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { loginSchema } from "../../../shared/schemas/auth.schema"
+import type { LoginCredentials } from "../types/auth.types"
+import { useLogin } from "../hooks/useLogin"
 
 const Login = () => {
+
+  const { mutate, isPending, isError, error } = useLogin()
+
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<LoginCredentials>({
+    resolver: zodResolver(loginSchema)
+  })
+
+  const onSubmit = (data: LoginCredentials) => {
+    mutate(data)
+    reset()
+  }
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-secondary">
       <div className="relative flex min-h-screen flex-col md:flex-row">
@@ -16,6 +33,14 @@ const Login = () => {
           />
 
           <div>
+            <div className="mb-6 flex w-fit">
+              <img
+                src="/images/logo.png"
+                alt="Logo"
+                className="h-14 w-14 rounded-lg object-contain md:h-17 md:w-17 xl:h-20 xl:w-20"
+              />
+            </div>
+
             <span className="text-xs font-bold tracking-[0.3em] text-secondary/70 uppercase md:text-sm xl:text-md">
               Accedé a tu cuenta
             </span>
@@ -34,7 +59,7 @@ const Login = () => {
             className="pointer-events-none absolute -right-16 -bottom-16 h-32 w-32 rounded-full border-4 border-primary/25 md:-right-20 md:-bottom-20 md:h-40 md:w-40 xl:-right-24 xl:-bottom-24 xl:h-56 xl:w-56 2xl:-right-28 2xl:-bottom-28 2xl:h-64 2xl:w-64"
           />
 
-          <div className="relative w-full max-w-md rounded-2xl mt-10 bg-secondary p-7 shadow-[0_35px_90px_-15px] shadow-tertiary/55 ring-1 ring-tertiary/15 md:p-9 md:ml-10 xl:mr-20 xl:p-10 2xl:mr-24">
+          <div className="relative w-full max-w-lg rounded-2xl mt-10 bg-secondary p-8 shadow-[0_35px_90px_-15px] shadow-tertiary/55 ring-1 ring-tertiary/15 md:p-10 md:ml-10 xl:mr-20 xl:p-12 2xl:mr-24">
             <span className="text-xs xl:text-xl font-bold text-primary">
               Iniciar sesión
             </span>
@@ -42,7 +67,7 @@ const Login = () => {
               Ingresá tus credenciales para continuar.
             </p>
 
-            <form className="mt-7 flex flex-col gap-6 md:mt-10 md:mb-10">
+            <form className="mt-7 flex flex-col gap-6 md:mt-10 md:mb-10" onSubmit={handleSubmit(onSubmit)}>
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="email"
@@ -52,49 +77,58 @@ const Login = () => {
                 </label>
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   autoComplete="email"
                   placeholder="Escriba su email..."
                   className="h-11 w-full rounded-lg border border-tertiary/10 bg-tertiary/5 px-3.5 text-base text-tertiary placeholder:text-tertiary/50 transition-colors duration-150 outline-none focus-visible:border-primary focus-visible:bg-secondary focus-visible:ring-2 focus-visible:ring-primary/20"
+                  {...register("email")}
                 />
+                {errors.email && (
+                  <span className="text-xs text-red-500">{errors.email.message}</span>
+                )}
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="password"
-                  className="text-left text-sm font-medium text-tertiary/60"
-                >
-                  Contraseña
-                </label>
+                <div className="flex items-center justify-between gap-2">
+                  <label
+                    htmlFor="password"
+                    className="text-left text-sm font-medium text-tertiary/60"
+                  >
+                    Contraseña
+                  </label>
+                  <Link
+                    to="/olvide-mi-contrasena"
+                    className="text-sm font-medium text-primary transition-colors duration-150 hover:text-tertiary"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
                 <input
                   id="password"
-                  name="password"
                   type="password"
                   autoComplete="current-password"
                   placeholder="Escriba su contraseña..."
                   className="h-11 w-full rounded-lg border border-tertiary/10 bg-tertiary/5 px-3.5 text-base text-tertiary placeholder:text-tertiary/50 transition-colors duration-150 outline-none focus-visible:border-primary focus-visible:bg-secondary focus-visible:ring-2 focus-visible:ring-primary/20"
+                  {...register("password")}
                 />
+                {errors.password && (
+                  <span className="text-xs text-red-500">{errors.password.message}</span>
+                )}
               </div>
+
+              {isError && (
+                <p className="text-sm text-red-500">{error.message}</p>
+              )}
 
               <button
                 type="submit"
+                disabled={isPending}
                 className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Iniciar sesión
                 <i className="bi bi-arrow-right text-lg" aria-hidden="true" />
               </button>
             </form>
-
-            <p className="mt-6 text-sm text-tertiary/60">
-              ¿No tenés cuenta?{" "}
-              <Link
-                to="/registro"
-                className="rounded-sm font-semibold text-primary underline decoration-2 underline-offset-4 outline-none hover:decoration-tertiary focus-visible:ring-2 focus-visible:ring-primary/50"
-              >
-                Crear cuenta
-              </Link>
-            </p>
           </div>
         </div>
       </div>

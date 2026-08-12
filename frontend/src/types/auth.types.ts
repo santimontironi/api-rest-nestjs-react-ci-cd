@@ -1,4 +1,4 @@
-import { registerSchema } from "../../../shared/schemas/auth.schema";
+import { loginSchema } from "../../../shared/schemas/auth.schema";
 import { z } from "zod";
 
-export type RegisterCredentials = z.infer<typeof registerSchema>;
+export type LoginCredentials = z.infer<typeof loginSchema>;

@@ -1,5 +1,5 @@
 // Los clientes de mail no soportan CSS externo ni flexbox: tablas y estilos inline.
-export function verificationEmailHtml(link: string): string {
+export function forgotPasswordEmailHtml(link: string): string {
   return `
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#000812;padding:32px 16px">
   <tr>
@@ -8,13 +8,13 @@ export function verificationEmailHtml(link: string): string {
              style="max-width:480px;background:#fffacd;border-radius:12px;padding:32px">
         <tr>
           <td style="color:#000812;font-size:22px;font-weight:bold;padding-bottom:16px">
-            Confirmá tu cuenta
+            Restablecé tu contraseña
           </td>
         </tr>
         <tr>
           <td style="color:#000812;font-size:15px;line-height:22px;padding-bottom:24px">
-            Para terminar el registro, confirmá tu dirección de email.
-            El link vence en 1 hora.
+            Recibimos una solicitud para restablecer tu contraseña. Si no fuiste vos, podés
+            ignorar este mail. El link vence en 1 hora.
           </td>
         </tr>
         <tr>
@@ -22,7 +22,7 @@ export function verificationEmailHtml(link: string): string {
             <a href="${link}"
                style="display:inline-block;background:#b81104;color:#fffacd;font-size:16px;
                       font-weight:bold;text-decoration:none;padding:14px 32px;border-radius:8px">
-              Confirmar cuenta
+              Restablecer contraseña
             </a>
           </td>
         </tr>
