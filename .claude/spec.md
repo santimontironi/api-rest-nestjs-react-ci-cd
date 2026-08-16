@@ -45,9 +45,8 @@ muchos `Product` (1 a N): cada producto pertenece a una única categoría. **No 
 `User` y `Product`**: los productos son un catálogo compartido, y la autenticación controla
 *quién* puede operar sobre él, no *qué* productos ve cada uno.
 
-`Category` y `Product` tienen un campo `active` para pausar/reactivar sin borrar. El borrado
-(`DELETE`) de ambos es permanente, no soft delete: es seguro porque el historial de ventas no
-depende de que sigan existiendo (ver `SaleItem` más abajo).
+El borrado (`DELETE`) de `Category` y `Product` es permanente, no soft delete: es seguro porque
+el historial de ventas no depende de que sigan existiendo (ver `SaleItem` más abajo).
 
 Una `Sale` agrupa una o más líneas (`SaleItem`), cada una referida a un `Product` con la cantidad
 vendida y un snapshot de precio, nombre y categoría al momento de la venta. Una `Sale` tiene
@@ -75,7 +74,6 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 |---|---|---|
 | `id` | `String` | PK, `@default(uuid())` |
 | `name` | `String` | |
-| `active` | `Boolean` | `@default(true)`. En `false`, no aparece en el listado ni se puede asignar a productos |
 | `products` | `Product[]` | Lado inverso de la relación con `Product` |
 | `createdAt` | `DateTime` | `@default(now())` |
 | `updatedAt` | `DateTime` | `@updatedAt` |
@@ -90,7 +88,6 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 | `description` | `String` | |
 | `stock` | `Int` | No negativo |
 | `price` | `Float` | No negativo |
-| `active` | `Boolean` | `@default(true)`. En `false`, no aparece en el catálogo ni se puede vender |
 | `categoryId` | `String` | FK a `Category.id`. Obligatoria: todo producto pertenece a una categoría |
 | `category` | `Category` | `@relation(fields: [categoryId], references: [id])` |
 | `saleItems` | `SaleItem[]` | Lado inverso de la relación con `SaleItem` |
@@ -179,10 +176,10 @@ Todos requieren autenticación y operan sobre el catálogo compartido.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/products` | Lista los productos activos (`active: true`) |
+| `GET` | `/products` | Lista los productos |
 | `GET` | `/products/:id` | Detalle de un producto |
-| `POST` | `/products` | Crea un producto (`multipart/form-data`, incluye la imagen). Se crea con `active: true` |
-| `PATCH` | `/products/:id` | Actualiza un producto (la imagen es opcional). Incluye `active`, para pausar/reactivar sin borrar |
+| `POST` | `/products` | Crea un producto (`multipart/form-data`, incluye la imagen) |
+| `PATCH` | `/products/:id` | Actualiza un producto (la imagen es opcional) |
 | `DELETE` | `/products/:id` | Elimina el producto de forma permanente |
 
 - Un `id` inexistente responde `404`.
@@ -196,10 +193,10 @@ Todos requieren autenticación.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/categories` | Lista las categorías activas (`active: true`). Alimenta el selector de categoría del formulario de producto |
+| `GET` | `/categories` | Lista las categorías. Alimenta el selector de categoría del formulario de producto |
 | `GET` | `/categories/:id` | Detalle de una categoría |
-| `POST` | `/categories` | Crea una categoría (`name`). Se crea con `active: true` |
-| `PATCH` | `/categories/:id` | Actualiza una categoría (`name` y/o `active`, para pausar/reactivar sin borrar) |
+| `POST` | `/categories` | Crea una categoría (`name`) |
+| `PATCH` | `/categories/:id` | Actualiza una categoría (`name`) |
 | `DELETE` | `/categories/:id` | Elimina la categoría y sus productos de forma permanente, en cascada |
 
 - Un `id` inexistente responde `404`.
@@ -219,14 +216,13 @@ Todos requieren autenticación.
 | `GET` | `/sales/:id` | Detalle de una venta con sus líneas |
 | `POST` | `/sales` | Registra una venta con una o más líneas (`productId` + `quantity`) |
 
-- Al registrar una venta se valida que cada producto esté **activo** (`active: true`) y tenga
-  **stock suficiente**; si no cumple alguna de las dos, responde `400` y no se crea la venta ni se
-  descuenta stock de ninguna línea.
+- Al registrar una venta se valida que cada producto tenga **stock suficiente**; si no lo tiene,
+  responde `400` y no se crea la venta ni se descuenta stock de ninguna línea.
 - La creación de la venta y el descuento de stock de todos los productos involucrados es una
   **operación atómica** (transacción de Prisma): si falla un paso, no queda nada aplicado.
 - `unitPrice`, `productName` y `categoryName` de cada línea se toman del producto en el momento de
   la venta, no los envía el cliente. Quedan como snapshot en `SaleItem` y no cambian después,
-  aunque el producto se edite, se pause o se elimine.
+  aunque el producto se edite o se elimine.
 - Un `id` inexistente responde `404`.
 
 ## Reportes y dashboard
@@ -260,10 +256,9 @@ su actividad de un vistazo.
 - `/reports/sales`, `/reports/sales-by-category`, `/reports/sales-trend` y `/reports/top-products`
   agrupan usando `productName`/`categoryName`/`unitPrice` de `SaleItem` (snapshot), no hacen join
   a `Product`/`Category`: siguen siendo precisos aunque el producto o la categoría se hayan
-  editado, pausado o eliminado después de la venta. `/reports/stock-by-category`,
-  `/reports/low-stock` y `/reports/products-by-category` sí reflejan el catálogo **actual**
-  (`Product`/`Category` con `active: true`), porque son fotos del estado presente, no del
-  histórico de ventas.
+  editado o eliminado después de la venta. `/reports/stock-by-category`, `/reports/low-stock` y
+  `/reports/products-by-category` sí reflejan el catálogo **actual** (`Product`/`Category`),
+  porque son fotos del estado presente, no del histórico de ventas.
 - Estos endpoints, al ser de solo lectura y agregación, no participan del caché de Redis de
   productos (ver sección Redis).
 
