@@ -24,11 +24,12 @@ model User {
 }
 
 model Category {
-  id          String    @id @default(uuid())
-  name        String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
+  id        String    @id @default(uuid())
+  name      String
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
 }
 
 model Product {
@@ -38,6 +39,7 @@ model Product {
   description String
   stock       Int
   price       Float
+  active      Boolean    @default(true)
   categoryId  String
   category    Category   @relation(fields: [categoryId], references: [id])
   saleItems   SaleItem[]
@@ -54,11 +56,13 @@ model Sale {
 }
 
 model SaleItem {
-  id        String  @id @default(uuid())
-  saleId    String
-  sale      Sale    @relation(fields: [saleId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
-  unitPrice Float
+  id           String   @id @default(uuid())
+  saleId       String
+  sale         Sale     @relation(fields: [saleId], references: [id])
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  quantity     Int
+  unitPrice    Float
+  productName  String
+  categoryName String
 }
