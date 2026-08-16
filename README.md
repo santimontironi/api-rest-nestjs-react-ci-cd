@@ -1,11 +1,17 @@
 # nestjs-react-ci-cd
 
-Aplicación fullstack de **gestión de productos con autenticación**. El usuario se registra,
-confirma su cuenta por email, inicia sesión y a partir de ahí administra el catálogo de productos
-(crear, listar, editar y eliminar), con una imagen por producto.
+> 🚧 **Proyecto en desarrollo activo.** La autenticación (registro, login, recuperación de
+> contraseña) ya funciona de punta a punta; el resto de la app (productos, categorías, ventas,
+> reportes) es todavía scaffolding. Ver [Estado](#estado) para el detalle de qué está hecho y qué
+> falta.
+
+Aplicación fullstack de **gestión de inventario con autenticación**, pensada para que un negocio
+lleve su catálogo de productos por categoría, registre ventas (con descuento automático de stock)
+y consulte reportes de esa actividad en un dashboard. El detalle funcional completo vive en
+`.claude/spec.md`; este README documenta el estado real del código.
 
 El catálogo es **compartido**: la autenticación define *quién* puede operar sobre él, no *qué*
-productos ve cada uno.
+productos ve cada uno. No hay autorregistro: las cuentas se dan de alta por fuera del panel.
 
 ## Es un proyecto de aprendizaje
 
@@ -15,20 +21,22 @@ prácticas de producción:
 
 - **CI/CD** — GitHub Actions validando cada push a `develop` y cada pull request hacia `master`,
   más un hook de Husky en `pre-push` que corre en local exactamente lo mismo que el CI.
-- **Rate limiting** — protección de la API con `@nestjs/throttler`, con un límite más estricto en
-  los endpoints de autenticación para mitigar fuerza bruta y el abuso del envío de mails.
-- **Redis** — caché de las lecturas frecuentes (listado y detalle de productos) e invalidación de
-  las claves afectadas en cada mutación.
 - **JWT en cookies httpOnly** — en lugar de guardar tokens en `localStorage`.
-- **Confirmación de cuenta por email** — con Nodemailer y un token de verificación propio.
+- **Recuperación de contraseña por email** — con Nodemailer y un token de un solo uso.
 - **PostgreSQL + Prisma** — incluyendo migraciones.
-- **Subida de imágenes** — Multer en memoria y almacenamiento en Cloudinary.
-- **Validación en las dos puntas** — DTOs con `class-validator` en el backend y Zod en el
-  frontend, tanto de lo que se envía como de lo que se recibe.
+- **Validación en las dos puntas** — Zod en ambos lados, tanto de lo que se envía como de lo que
+  se recibe, con los esquemas compartidos desde `shared/`.
 - **Estado de servidor con TanStack Query** — caché, invalidación y estados de carga y error.
 
+Pendientes de incorporar (están en la idea del proyecto, todavía no en el código):
+
+- **Rate limiting** con `@nestjs/throttler`, más estricto en los endpoints de autenticación.
+- **Redis** como caché de lecturas frecuentes, invalidada en cada mutación.
+- **Subida de imágenes** con Multer y almacenamiento en Cloudinary.
+
 También sirve como base de referencia repetible para arrancar futuros proyectos fullstack con
-autenticación, validación y CI ya resueltos.
+autenticación, validación y CI ya resueltos, y como sistema listo para ofrecer a negocios de la
+zona (no es un SaaS: cada negocio tendría su propia instancia).
 
 ## Stack
 
@@ -42,11 +50,11 @@ autenticación, validación y CI ya resueltos.
 | ORM | Prisma |
 | Caché | Redis |
 | Autenticación | JWT firmado, transportado en cookie httpOnly |
-| Protección | Rate limiting (`@nestjs/throttler`) |
 | Hash de contraseñas | bcrypt |
 | Envío de emails | Nodemailer (servicio `gmail`) |
-| Carga de archivos | Multer (`@nestjs/platform-express`) |
-| Almacenamiento de imágenes | Cloudinary |
+
+Pendientes: rate limiting (`@nestjs/throttler`), Redis, carga de imágenes con Multer y
+Cloudinary.
 
 ### Frontend (`frontend/`)
 
@@ -72,18 +80,19 @@ Husky (`pre-push`) y GitHub Actions para CI.
 ├── backend/          API REST con NestJS
 │   ├── prisma/       schema.prisma + migraciones
 │   └── src/
-│       ├── auth/     register, login, logout, verificación de email, guards
+│       ├── auth/     register, login, forgot/reset password, guard de sesión
 │       ├── config/   configuración del transporter de Nodemailer
-│       ├── mail/     MailService + plantillas de email
-│       ├── products/ CRUD del catálogo
+│       ├── mail/     MailService + plantilla del mail de recuperación
+│       ├── products/ scaffold vacío (controller y service sin implementar)
 │       └── main.ts
 ├── frontend/         SPA con React + Vite
 │   └── src/
-│       ├── components/
-│       ├── hooks/
-│       ├── pages/
-│       ├── validations/  esquemas de Zod
+│       ├── hooks/     useLogin
+│       ├── pages/     Login (implementada), ResetPassword (placeholder)
+│       ├── services/  cliente de Axios + auth.service
+│       ├── types/
 │       └── App.tsx
+├── shared/schemas/    esquemas de Zod compartidos entre backend y frontend
 ├── .github/workflows/ci.yml
 ├── .husky/pre-push
 └── package.json      coordinador del monorepo
@@ -148,8 +157,8 @@ FRONTEND_URL="http://localhost:5173"
 | `DATABASE_URL` | Cadena de conexión a PostgreSQL. La lee Prisma |
 | `EMAIL_USER` | Cuenta de Gmail remitente |
 | `EMAIL_PASS` | **Contraseña de aplicación** de esa cuenta (requiere 2FA activo; la contraseña normal no sirve) |
-| `JWT_SECRET` | Secret con el que se firman los JWT: el de sesión y el de confirmación de email |
-| `FRONTEND_URL` | Base del frontend, usada para armar el link de confirmación del mail |
+| `JWT_SECRET` | Secret con el que se firman los JWT: el de sesión y el de recuperación de contraseña |
+| `FRONTEND_URL` | Base del frontend: arma el link del mail de recuperación y es el `origin` habilitado en CORS |
 
 Las variables se cargan con `dotenv/config` (importado como primera línea de `backend/src/main.ts`)
 y con `@nestjs/config` registrado global en `AppModule`. Prisma no las carga solo: las toma vía
@@ -162,69 +171,77 @@ implementen:
 |---|---|
 | `PORT` | Puerto de la API. Sin ella, `main.ts` cae a `3000` |
 | `NODE_ENV` | `development` / `production` (cookie `secure`, `sameSite`) |
-| `CORS_ORIGIN` | Origen permitido para el frontend |
 | `REDIS_URL` | Cadena de conexión a Redis |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Credenciales de Cloudinary |
 
 ### `frontend/.env`
 
-Todavía no existe: el frontend no consume ninguna variable por ahora. Cuando se agregue la
-instancia de Axios va a necesitar:
-
 ```bash
-VITE_API_URL="http://localhost:3000"
+VITE_BACKEND_URL="http://localhost:3000/api"
 ```
+
+| Variable | Descripción |
+|---|---|
+| `VITE_BACKEND_URL` | Base URL de la API, usada por la instancia de Axios en `frontend/src/services/api.ts`. Incluye el prefijo `/api` |
 
 ## Modelos
 
-Solo existen `User` y `Product`, **sin relación entre ellos** (catálogo compartido). La fuente de
-verdad es `backend/prisma/schema.prisma`.
+La fuente de verdad es `backend/prisma/schema.prisma`. Hoy define cinco modelos, pero **solo
+`User` tiene lógica de negocio implementada** — el resto existe en el schema (con sus migraciones
+aplicadas) a la espera de los módulos que los usen.
 
 - **User**: `id`, `email` (único), `password` (hasheada, nunca se devuelve), `name`, `surname`,
-  `emailVerified` (arranca en `false`), `createdAt`, `updatedAt`.
-- **Product**: `id`, `image` (URL de Cloudinary, obligatoria), `name`, `description`, `price`,
   `createdAt`, `updatedAt`.
+- **Category**: `id`, `name`, relación uno a muchos con `Product`.
+- **Product**: `id`, `image`, `name`, `description`, `stock`, `price`, `categoryId` (relación con
+  `Category`).
+- **Sale**: `id`, `total`, relación uno a muchos con `SaleItem`.
+- **SaleItem**: línea de una venta — `quantity`, `unitPrice`, `productName` y `categoryName`
+  desnormalizados (para conservar el detalle aunque el producto o la categoría cambien o se
+  borren después), más una referencia opcional a `Product` (`onDelete: SetNull`).
 
 ## API
 
-### Autenticación
+Todas las rutas llevan el prefijo global `/api` (configurado en `main.ts`).
+
+### Autenticación (`/api/auth`) — implementado
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `POST` | `/auth/register` | Crea el usuario con `emailVerified: false` y envía el mail de confirmación. No inicia sesión |
-| `GET` | `/auth/verify-email?token=...` | Confirma la cuenta. Token inválido o vencido → `400`. Cuenta ya confirmada → `200` (idempotente) |
-| `POST` | `/auth/resend-verification` | Reemite el token y reenvía el mail. Responde igual exista o no el email |
-| `POST` | `/auth/login` | Emite el JWT en una cookie httpOnly. Cuenta sin confirmar → `403` |
-| `POST` | `/auth/logout` | Limpia la cookie |
-| `GET` | `/auth/me` | Devuelve el usuario de la sesión actual |
+| `POST` | `/auth/register` | Crea el usuario. No inicia sesión |
+| `POST` | `/auth/login` | Valida credenciales y emite el JWT en una cookie httpOnly (`session_token`) |
+| `POST` | `/auth/forgot-password` | Si el email existe, envía un link de recuperación. Responde igual en ambos casos |
+| `POST` | `/auth/reset-password/:token` | Actualiza la contraseña si el token es válido. Token inválido, vencido o de otro tipo → `400` |
+| `GET` | `/auth/me` | Devuelve el usuario de la sesión actual (requiere `JwtAuthGuard`) |
 
-### Productos
+`POST /auth/register` no tiene pantalla en el frontend a propósito (ver spec): el panel no tiene
+autorregistro, las cuentas se dan de alta por fuera de esa UI. Todavía faltan por implementar
+`POST /auth/logout` y `PATCH /auth/change-password` (cambio de contraseña con sesión activa),
+ambos ya especificados en `.claude/spec.md`.
 
-Todos requieren cookie de sesión válida; sin ella responden `401`. Un `id` inexistente → `404`.
+### Catálogo, ventas y reportes — planeado
 
-| Método | Ruta | Descripción |
+Los modelos ya están en el schema; los endpoints están especificados en `.claude/spec.md` pero
+ninguno tiene controller ni service todavía (`products/` es un scaffold vacío, y no existen
+módulos `categories`, `sales` ni `reports` en `backend/src`).
+
+| Grupo | Rutas | Qué van a hacer |
 |---|---|---|
-| `GET` | `/products` | Lista los productos |
-| `GET` | `/products/:id` | Detalle de un producto |
-| `POST` | `/products` | Crea un producto (`multipart/form-data`, imagen obligatoria) |
-| `PATCH` | `/products/:id` | Actualiza un producto (imagen opcional) |
-| `DELETE` | `/products/:id` | Elimina un producto |
+| Productos | `GET/POST/PATCH/DELETE /products`, `POST /products/import` | CRUD del catálogo (imagen en Cloudinary) + alta masiva desde un Excel |
+| Categorías | `GET/POST/PATCH/DELETE /categories` | CRUD; borrar una categoría borra en cascada sus productos |
+| Ventas | `GET/POST /sales` | Registrar una venta con una o más líneas; descuenta stock en una transacción atómica |
+| Reportes | `GET /reports/*` (7 endpoints) | Agregaciones de solo lectura para un dashboard: ventas por período/categoría, top productos, stock bajo, etc. |
+
+Detalle de cada endpoint, validaciones y reglas de negocio: `.claude/spec.md`.
 
 ### Decisiones a tener en cuenta
 
-- El token de sesión **nunca** viaja en el body: solo en la cookie httpOnly. El frontend hace
-  todas las peticiones con `withCredentials: true`.
-- El token de confirmación es un JWT firmado con el mismo `JWT_SECRET` que el de sesión, pero con
-  `type: 'email-verification'` en el payload: esa validación es la que separa ambos tokens, así un
-  token de sesión no sirve como token de confirmación ni al revés. No se guarda en la base.
-- Las duraciones de los tokens **no** son variables de entorno: van hardcodeadas donde se firman
-  (`1d` el de sesión en el `JwtModule`, `24h` el de confirmación en su `signAsync`).
-- Las imágenes se reciben con Multer en `memoryStorage` y se suben a Cloudinary; en la base queda
-  la URL, nunca el archivo. Si la subida falla, el producto no se crea.
-- Validación de archivos (`image/jpeg`, `image/png`, `image/webp`, máx. 2 MB) tanto en el
-  frontend con Zod como en el backend.
-- Rate limiting global, más estricto en `register`, `login` y `resend-verification` → `429`.
-- Redis cachea el listado y el detalle de productos; toda mutación invalida las claves afectadas.
+- El token de sesión **nunca** viaja en el body: solo en la cookie httpOnly `session_token`.
+- El token de recuperación de contraseña es un JWT firmado con el mismo `JWT_SECRET` que el de
+  sesión, pero con `type: 'password-reset'` en el payload y `expiresIn: '1h'`; esa validación es
+  la que impide reutilizar un token de sesión como token de recuperación. No se guarda en la base.
+- La duración del token de sesión **no** es una variable de entorno: va hardcodeada (`1d`) en el
+  `signOptions` del `JwtModule`.
 
 ## Scripts
 
@@ -272,21 +289,34 @@ el CI en rojo.
 
 ## Estado
 
-Proyecto en etapa inicial: la spec está completa y las funcionalidades se construyen de forma
-incremental. Hoy están hechos el scaffolding de ambas apps, el esquema de Prisma con sus
-migraciones, el `PrismaService`, el módulo `mail` (transporter de Gmail, `MailService` y plantilla
-del mail de confirmación) y las páginas de login y registro del frontend.
+**🚧 Proyecto en desarrollo**, construido de forma incremental.
 
-Los módulos `auth` y `products` del backend todavía son scaffolds vacíos, y faltan los módulos
-`cloudinary` y `redis`. Dependencias pendientes de instalar: Redis, `@nestjs/throttler`,
-`cookie-parser`, bcrypt, `@types/multer`, cloudinary y TanStack Query.
+Hecho:
+
+- Esquema de Prisma (`User`, `Category`, `Product`, `Sale`, `SaleItem`) con sus migraciones.
+- Auth completa: registro, login con cookie httpOnly, recuperación de contraseña
+  (`forgot-password` / `reset-password/:token`) y `me`, con guard de sesión (`JwtAuthGuard`).
+- Módulo `mail` con el transporter de Gmail y la plantilla del mail de recuperación de contraseña.
+- Frontend: página de login estilada y funcional contra la API.
+- CI/CD: hook de Husky en `pre-push` y GitHub Actions con los mismos checks.
+
+Pendiente:
+
+- Módulos `products`, `categories`, `sales` y `reports` (ver tabla de arriba): sus modelos ya
+  están en el schema, pero ningún endpoint está implementado.
+- `POST /auth/logout` y `PATCH /auth/change-password`.
+- Página de recuperación de contraseña en el frontend (`ResetPassword.tsx` es un placeholder).
+- Rate limiting (`@nestjs/throttler`), Redis, y subida/importación de imágenes con Multer +
+  Cloudinary.
 
 ## Documentación
 
-El detalle vive en `.claude/`:
+El detalle funcional y las convenciones del proyecto viven en `.claude/`:
 
-- `context.md` — de qué trata el proyecto y qué problema resuelve.
-- `spec.md` — especificaciones, requerimientos y criterios de aceptación.
+- `context.md` — de qué trata el proyecto, su objetivo y qué problema resuelve.
+- `spec.md` — especificaciones, modelos, endpoints (implementados y planeados) y criterios de
+  aceptación. Es la fuente de verdad del alcance funcional; este README solo resume el estado
+  actual del código.
 - `rules.md` — convenciones, arquitectura y restricciones de código.
 
-Si cambian los requerimientos, se actualiza esa documentación **antes** de implementar.
+Si cambian los requerimientos, esa documentación se actualiza **antes** de implementar.
