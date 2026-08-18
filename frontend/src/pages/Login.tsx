@@ -1,13 +1,18 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { loginSchema } from "../../../shared/schemas/auth.schema"
 import type { LoginCredentials } from "../types/auth.types"
 import { useLogin } from "../hooks/useLogin"
+import { useMe } from "../hooks/useMe"
 
 const Login = () => {
 
+  const { data: user } = useMe()
   const { mutate, isPending, isError, error } = useLogin()
+
+  const navigate = useNavigate()
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<LoginCredentials>({
     resolver: zodResolver(loginSchema)
@@ -17,6 +22,12 @@ const Login = () => {
     mutate(data)
     reset()
   }
+
+  useEffect(() => {
+    if (user) {
+      navigate("/home", { replace: true })
+    }
+  }, [user, navigate])
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-secondary">
