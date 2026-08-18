@@ -1,0 +1,1 @@
+export type sidebarItems = 'dashboard' | 'sales' | 'products' | 'categories' | 'settings';
