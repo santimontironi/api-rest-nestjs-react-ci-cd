@@ -1,5 +1,5 @@
 import api from "./api";
-import type { LoginCredentials } from "../types/auth.types";
+import type { LoginCredentials, ForgotPasswordCredentials, ResetPasswordCredentials } from "../types/auth.types";
 import { userSchema } from "../../../shared/schemas/auth.schema";
 
 export const loginService = async (credentials: LoginCredentials) => {
@@ -14,5 +14,15 @@ export const meService = async () => {
 
 export const logoutService = async () => {
     const response = await api.post("/auth/logout");
+    return response.data;
+}
+
+export const forgotPasswordService = async (credentials: ForgotPasswordCredentials) => {
+    const response = await api.post("/auth/forgot-password", credentials);
+    return response.data;
+}
+
+export const resetPasswordService = async ({ token, ...credentials }: ResetPasswordCredentials & { token: string }) => {
+    const response = await api.post(`/auth/reset-password/${token}`, credentials);
     return response.data;
 }

@@ -78,7 +78,7 @@ export class AuthService {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const token = await this.jwtService.signAsync({ sub: user.id, type: 'password-reset' }, { expiresIn: '1h' });
+    const token = await this.jwtService.signAsync({ sub: user.id, type: 'password-reset' }, { expiresIn: '10m' });
     const link = `${this.configService.get<string>('FRONTEND_URL')}/restablecer-contrasena/${token}`;
     await this.mailService.sendForgotPasswordEmail(user.email, link);
 

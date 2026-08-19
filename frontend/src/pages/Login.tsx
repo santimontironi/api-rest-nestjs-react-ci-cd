@@ -1,11 +1,13 @@
-import { Link, useNavigate } from "react-router-dom"
-import { useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { loginSchema } from "../../../shared/schemas/auth.schema"
 import type { LoginCredentials } from "../types/auth.types"
 import { useLogin } from "../hooks/useLogin"
 import { useMe } from "../hooks/useMe"
+import InputMail from "../components/InputMail"
+import Loader from "../components/Loader"
 
 const Login = () => {
 
@@ -13,6 +15,8 @@ const Login = () => {
   const { mutate, isPending, isError, error } = useLogin()
 
   const navigate = useNavigate()
+
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<LoginCredentials>({
     resolver: zodResolver(loginSchema)
@@ -25,7 +29,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/home", { replace: true })
+      navigate("/inicio", { replace: true })
     }
   }, [user, navigate])
 
@@ -107,12 +111,13 @@ const Login = () => {
                   >
                     Contraseña
                   </label>
-                  <Link
-                    to="/olvide-mi-contrasena"
-                    className="text-sm font-medium text-primary transition-colors duration-150 hover:text-tertiary"
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="cursor-pointer text-sm font-medium text-primary transition-colors duration-150 hover:text-tertiary"
                   >
                     ¿Olvidaste tu contraseña?
-                  </Link>
+                  </button>
                 </div>
                 <input
                   id="password"
@@ -136,13 +141,21 @@ const Login = () => {
                 disabled={isPending}
                 className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Iniciar sesión
-                <i className="bi bi-arrow-right text-lg" aria-hidden="true" />
+                {isPending ? (
+                  <Loader inline />
+                ) : (
+                  <>
+                    Iniciar sesión
+                    <i className="bi bi-arrow-right text-lg" aria-hidden="true" />
+                  </>
+                )}
               </button>
             </form>
           </div>
         </div>
       </div>
+
+      {showForgotPassword && <InputMail onClose={() => setShowForgotPassword(false)} />}
     </div>
   )
 }
