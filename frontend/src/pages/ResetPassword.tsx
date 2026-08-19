@@ -1,5 +1,4 @@
 import { Link, useParams } from "react-router-dom"
-import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { resetPasswordSchema } from "../../../shared/schemas/auth.schema"
@@ -12,7 +11,7 @@ const ResetPassword = () => {
   const { token } = useParams()
   const { mutate, isPending, isError, isSuccess } = useResetPassword()
 
-  const [invalidToken, setInvalidToken] = useState(false)
+  const invalidToken = !token
 
   const { register, handleSubmit, formState: { errors } } = useForm<ResetPasswordCredentials>({
     resolver: zodResolver(resetPasswordSchema)
@@ -22,12 +21,6 @@ const ResetPassword = () => {
     if (!token) return
     mutate({ ...data, token })
   }
-
-  useEffect(() => {
-    if (!token) {
-      setInvalidToken(true)
-    }
-  }, [token])
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-secondary px-6 py-12">
