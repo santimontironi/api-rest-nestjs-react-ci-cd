@@ -153,7 +153,7 @@ ejemplo, `POST /auth/register` corresponde en la práctica a `POST /api/auth/reg
     nueva contraseña. Si el token es inválido o está vencido, responde `400`. Si es válido,
     hashea la contraseña y actualiza el `User`.
   - El token de reseteo es un **JWT** firmado con el mismo secret que el de sesión
-    (`JWT_SECRET`). Vence a la **1 hora**, valor que va hardcodeado en el `signAsync` que lo
+    (`JWT_SECRET`). Vence a los **10 minutos**, valor que va hardcodeado en el `signAsync` que lo
     emite, no en una variable de entorno.
   - Su payload lleva `sub` (id del usuario) y `type: 'password-reset'`. Al resetear se valida ese
     `type`, de modo que un token de sesión no sirve como token de reseteo ni al revés. Esa
@@ -338,7 +338,7 @@ sesión como para el de reseteo de contraseña), `PORT`, `CORS_ORIGIN`, `NODE_EN
 `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
 
 Las duraciones de los tokens **no** son variables de entorno: van hardcodeadas donde se firman
-(`1d` para el de sesión en `JwtModule`, `1h` para el de reseteo de contraseña en su `signAsync`).
+(`1d` para el de sesión en `JwtModule`, `10m` para el de reseteo de contraseña en su `signAsync`).
 
 **Frontend:** `VITE_API_URL`.
 

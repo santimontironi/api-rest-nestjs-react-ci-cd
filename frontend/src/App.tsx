@@ -12,10 +12,10 @@ const App = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/home" element={ <VerifyAuth>
+          <Route path="/restablecer-contrasena/:token" element={<ResetPassword />} />
+          <Route path="/inicio" element={ <VerifyAuth>
             <Home />
           </VerifyAuth>} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
