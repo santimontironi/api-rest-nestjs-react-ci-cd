@@ -34,7 +34,7 @@ legible, prolijo, mantenible y escalable.
   - Sí llevan tipo explícito: los props de un componente, los DTOs y las firmas públicas de un
     service. Son los bordes; el resto se infiere.
 - **Las constantes van a `utils/consts/`**, un archivo por dominio, en `kebab-case` y con sufijo
-  `-consts.ts` (`auth-consts.ts`, `products-consts.ts`, `upload-consts.ts`). Nada de valores
+  `.consts.ts` (`auth.consts.ts`, `products.consts.ts`, `upload.consts.ts`). Nada de valores
   fijos sueltos dentro de componentes o services: si es un valor repetido o un "número mágico"
   (límites, tamaños máximos, tiempos de expiración, mensajes fijos, opciones de un select),
   se declara ahí y se importa. Los secretos siguen yendo por variables de entorno, no acá.
