@@ -318,9 +318,11 @@ cargarlos uno por uno desde el formulario.
 
 ## Rate limiting
 
-Se aplica rate limiting global, con un límite más estricto en los endpoints de autenticación
-(`register`, `login` y `forgot-password`) para mitigar fuerza bruta y el abuso del envío
-de mails. Al superarse se responde `429`.
+Se aplica rate limiting global de **70 peticiones por minuto**, con un límite más estricto de
+**8 peticiones cada 10 minutos** en los endpoints de autenticación (`register`, `login` y
+`forgot-password`) para mitigar fuerza bruta y el abuso del envío de mails. Al superarse se
+responde `429`. Implementado con `@nestjs/throttler`; los valores están en
+`backend/src/utils/consts/auth.consts.ts`.
 
 ## Redis
 
@@ -388,9 +390,9 @@ Ya incorporados: Prisma (`@prisma/client`, `@prisma/adapter-pg`, `pg`), Husky
 (`.husky/pre-push`), Tailwind v4 (`tailwindcss`, `@tailwindcss/vite`), Nodemailer
 (`nodemailer`, `@types/nodemailer`), la carga de variables de entorno (`@nestjs/config`,
 `dotenv`), JWT (`@nestjs/jwt`), bcrypt (`bcrypt`, `@types/bcrypt`), la validación de DTOs
-(`class-validator`, `class-transformer`) y `cookie-parser` (`cookie-parser`,
-`@types/cookie-parser`).
+(`class-validator`, `class-transformer`), `cookie-parser` (`cookie-parser`,
+`@types/cookie-parser`) y rate limiting (`@nestjs/throttler`).
 
-Todavía faltan: Redis, `@nestjs/throttler`,
+Todavía faltan: Redis,
 multer (`@types/multer`), cloudinary, TanStack Query y `xlsx` (parseo del Excel de importación
 de productos). Actualizar esta sección a medida que se agreguen.
