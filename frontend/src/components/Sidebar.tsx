@@ -36,7 +36,7 @@ const Sidebar = ({ activeItem, setActiveItem }: SidebarProps) => {
     const handleLogout = () => {
         logout(undefined, {
             onSuccess: () => {
-                navigate("/login");
+                navigate("/");
             },
         });
     };

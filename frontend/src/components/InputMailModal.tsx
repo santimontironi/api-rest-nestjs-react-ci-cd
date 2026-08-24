@@ -1,16 +1,20 @@
-import { useForgotPassword } from '../hooks/useForgotPassword'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { forgotPasswordSchema } from '../../../shared/schemas/auth.schema'
-import type { ForgotPasswordCredentials } from '../types/auth.types'
-import Loader from './Loader'
+import { useForgotPassword } from "../hooks/useForgotPassword";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { forgotPasswordSchema } from "../../../shared/schemas/auth.schema";
+import type { ForgotPasswordCredentials } from "../types/auth.types";
+import Loader from "./Loader";
 
-const InputMail = ({ onClose }: { onClose: () => void }) => {
-  const { mutate, isPending, isError, isSuccess } = useForgotPassword()
+const InputMailModal = ({ onClose }: { onClose: () => void }) => {
+  const { mutate, isPending, isError, isSuccess, error } = useForgotPassword();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ForgotPasswordCredentials>({
-    resolver: zodResolver(forgotPasswordSchema)
-  })
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordCredentials>({
+    resolver: zodResolver(forgotPasswordSchema),
+  });
 
   return (
     <div
@@ -33,19 +37,27 @@ const InputMail = ({ onClose }: { onClose: () => void }) => {
           <i className="bi bi-x-lg text-lg" aria-hidden="true" />
         </button>
 
-        <span id="forgot-password-title" className="text-xs font-bold text-primary xl:text-xl">
+        <span
+          id="forgot-password-title"
+          className="text-xs font-bold text-primary xl:text-xl"
+        >
           Recuperar contraseña
         </span>
         <p className="mt-2 text-sm text-tertiary/60">
-          Ingresá tu email y te enviamos un enlace para crear una nueva contraseña.
+          Ingresá tu email y te enviamos un enlace para crear una nueva
+          contraseña.
         </p>
 
         {isSuccess ? (
           <p className="mt-7 text-sm text-tertiary">
-            Si el email está registrado, vas a recibir un enlace para restablecer tu contraseña.
+            Si el email está registrado, vas a recibir un enlace para
+            restablecer tu contraseña.
           </p>
         ) : (
-          <form className="mt-7 flex flex-col gap-6" onSubmit={handleSubmit((data) => mutate(data))}>
+          <form
+            className="mt-7 flex flex-col gap-6"
+            onSubmit={handleSubmit((data) => mutate(data))}
+          >
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="forgot-email"
@@ -62,13 +74,13 @@ const InputMail = ({ onClose }: { onClose: () => void }) => {
                 {...register("email")}
               />
               {errors.email && (
-                <span className="text-xs text-red-500">{errors.email.message}</span>
+                <span className="text-xs text-red-500">
+                  {errors.email.message}
+                </span>
               )}
             </div>
 
-            {isError && (
-              <p className="text-sm text-red-500">No pudimos enviar el enlace. Intentá de nuevo.</p>
-            )}
+            {isError && <p className="text-sm text-red-500">{error.message}</p>}
 
             <button
               type="submit"
@@ -88,7 +100,7 @@ const InputMail = ({ onClose }: { onClose: () => void }) => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default InputMail
+export default InputMailModal;

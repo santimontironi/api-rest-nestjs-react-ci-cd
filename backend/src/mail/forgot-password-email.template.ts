@@ -34,5 +34,5 @@ export function forgotPasswordEmailHtml(link: string): string {
       </table>
     </td>
   </tr>
-</table>`;
+</table>`
 }
