@@ -1,37 +1,41 @@
-import { useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { loginSchema } from "../../../shared/schemas/auth.schema"
-import type { LoginCredentials } from "../types/auth.types"
-import { useLogin } from "../hooks/useLogin"
-import { useMe } from "../hooks/useMe"
-import InputMail from "../components/InputMail"
-import Loader from "../components/Loader"
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "../../../shared/schemas/auth.schema";
+import type { LoginCredentials } from "../types/auth.types";
+import { useLogin } from "../hooks/useLogin";
+import { useMe } from "../hooks/useMe";
+import InputMailModal from "../components/InputMailModal";
+import Loader from "../components/Loader";
 
 const Login = () => {
+  const { data: user } = useMe();
+  const { mutate, isPending, isError, error } = useLogin();
 
-  const { data: user } = useMe()
-  const { mutate, isPending, isError, error } = useLogin()
+  const navigate = useNavigate();
 
-  const navigate = useNavigate()
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const [showForgotPassword, setShowForgotPassword] = useState(false)
-
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<LoginCredentials>({
-    resolver: zodResolver(loginSchema)
-  })
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<LoginCredentials>({
+    resolver: zodResolver(loginSchema),
+  });
 
   const onSubmit = (data: LoginCredentials) => {
-    mutate(data)
-    reset()
-  }
+    mutate(data);
+    reset();
+  };
 
   useEffect(() => {
     if (user) {
-      navigate("/inicio", { replace: true })
+      navigate("/inicio", { replace: true });
     }
-  }, [user, navigate])
+  }, [user, navigate]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-secondary">
@@ -63,7 +67,8 @@ const Login = () => {
               Bienvenido a Catálogo.
             </h1>
             <p className="mt-5 max-w-xs text-base text-secondary/85 [text-shadow:0_2px_12px_rgba(0,8,18,0.3)] md:mt-6 md:max-w-sm md:text-lg xl:max-w-lg 2xl:max-w-xl">
-              Ingresá con tus credenciales a Catálogo y empezá a gestionar tus productos.
+              Ingresá con tus credenciales a Catálogo y empezá a gestionar tus
+              productos.
             </p>
           </div>
         </div>
@@ -82,7 +87,10 @@ const Login = () => {
               Ingresá tus credenciales para continuar.
             </p>
 
-            <form className="mt-7 flex flex-col gap-6 md:mt-10 md:mb-10" onSubmit={handleSubmit(onSubmit)}>
+            <form
+              className="mt-7 flex flex-col gap-6 md:mt-10 md:mb-10"
+              onSubmit={handleSubmit(onSubmit)}
+            >
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="email"
@@ -99,7 +107,9 @@ const Login = () => {
                   {...register("email")}
                 />
                 {errors.email && (
-                  <span className="text-xs text-red-500">{errors.email.message}</span>
+                  <span className="text-xs text-red-500">
+                    {errors.email.message}
+                  </span>
                 )}
               </div>
 
@@ -128,7 +138,9 @@ const Login = () => {
                   {...register("password")}
                 />
                 {errors.password && (
-                  <span className="text-xs text-red-500">{errors.password.message}</span>
+                  <span className="text-xs text-red-500">
+                    {errors.password.message}
+                  </span>
                 )}
               </div>
 
@@ -146,7 +158,10 @@ const Login = () => {
                 ) : (
                   <>
                     Iniciar sesión
-                    <i className="bi bi-arrow-right text-lg" aria-hidden="true" />
+                    <i
+                      className="bi bi-arrow-right text-lg"
+                      aria-hidden="true"
+                    />
                   </>
                 )}
               </button>
@@ -155,9 +170,11 @@ const Login = () => {
         </div>
       </div>
 
-      {showForgotPassword && <InputMail onClose={() => setShowForgotPassword(false)} />}
+      {showForgotPassword && (
+        <InputMailModal onClose={() => setShowForgotPassword(false)} />
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

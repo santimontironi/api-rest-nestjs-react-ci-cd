@@ -21,13 +21,13 @@ El proyecto se divide en dos aplicaciones dentro del mismo repositorio:
 
 ## Objetivo
 
-Nace como **proyecto de aprendizaje**, pero la intención a futuro es ofrecerlo a **negocios de
-la zona** como sistema de gestión de catálogo de productos. No es un SaaS con planes pagos ni
-multi-tenant: la idea es acercarse a negocios puntuales y ofrecerles este sistema (cada uno con
-su propia instancia/despliegue). Por eso el stack y las prácticas se eligen pensando en
-producción real, no solo en practicar: autenticación sólida, validación en ambas puntas, CI y
-buenas prácticas ya forman parte del proyecto desde la base, en vez de agregarse después como
-parche.
+Nace como **proyecto universitario** (trabajo práctico/final de la carrera), pero la intención a
+futuro es ofrecerlo a **negocios de la zona** como sistema de gestión de catálogo de productos. No
+es un SaaS con planes pagos ni multi-tenant: la idea es acercarse a negocios puntuales y
+ofrecerles este sistema (cada uno con su propia instancia/despliegue). Por eso el stack y las
+prácticas se eligen pensando en producción real, no solo en cumplir con la entrega académica:
+autenticación sólida, validación en ambas puntas, CI y buenas prácticas ya forman parte del
+proyecto desde la base, en vez de agregarse después como parche.
 
 El dominio (productos) se mantiene deliberadamente simple por ahora: la prioridad es tener la
 base técnica (auth, validación, CI, infraestructura) sólida antes de sumar features pensadas

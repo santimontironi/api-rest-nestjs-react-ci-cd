@@ -73,7 +73,7 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | `String` | PK, `@default(uuid())` |
-| `name` | `String` | |
+| `name` | `String` | `@unique` |
 | `products` | `Product[]` | Lado inverso de la relación con `Product` |
 | `createdAt` | `DateTime` | `@default(now())` |
 | `updatedAt` | `DateTime` | `@updatedAt` |
@@ -183,6 +183,8 @@ Todos requieren autenticación y operan sobre el catálogo compartido.
 | `DELETE` | `/products/:id` | Elimina el producto de forma permanente |
 
 - Un `id` inexistente responde `404`.
+- `GET /products` responde `404` si el catálogo está vacío (no un array vacío). El frontend
+  distingue este caso puntual (mensaje "no hay productos") de cualquier otro error.
 - `DELETE` es un borrado real, no soft delete: es seguro porque `SaleItem` guarda su propio
   snapshot (`productName`, `categoryName`, `unitPrice`) y no depende de que el producto siga
   existiendo.
@@ -200,6 +202,10 @@ Todos requieren autenticación.
 | `DELETE` | `/categories/:id` | Elimina la categoría y sus productos de forma permanente, en cascada |
 
 - Un `id` inexistente responde `404`.
+- `GET /categories` responde `404` si no hay categorías cargadas (no un array vacío), mismo
+  criterio que `GET /products`.
+- `name` es único (`@unique` en el schema): `POST` y `PATCH` responden `400` si ya existe otra
+  categoría con ese nombre.
 - `DELETE` borra la categoría y todos sus productos en una **transacción atómica**, mismo criterio
   que la importación por Excel y el registro de una venta. El frontend muestra una advertencia
   antes de confirmar si la categoría tiene productos.
