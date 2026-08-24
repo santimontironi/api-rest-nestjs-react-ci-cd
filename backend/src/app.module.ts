@@ -7,7 +7,7 @@ import { ProductsModule } from './products/products.module'
 import { MailModule } from './mail/mail.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { THROTTLE_GLOBAL_LIMIT, THROTTLE_GLOBAL_TTL } from './utils/consts/auth.consts'
-import { CategoriesModule } from './categories/categories.module';
+import { CategoriesModule } from './categories/categories.module'
 
 @Module({
   imports: [
