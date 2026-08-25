@@ -1,18 +1,17 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addCategorySchema } from "../../../shared/schemas/category.schema";
-import type { categoryCredential } from "../types/category.types";
+import { addCategorySchema, type AddCategoryInput } from "../../../shared/schemas/category.schema";
 import { useAddCategory } from "../hooks/useAddCategory";
 import Loader from "./Loader";
 
 const InputCategoryModal = ({ onClose }: { onClose: () => void }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm<categoryCredential>({
+  const { register, handleSubmit, formState: { errors } } = useForm<AddCategoryInput>({
     resolver: zodResolver(addCategorySchema),
   });
 
   const { mutate: addCategory, isPending, error } = useAddCategory();
 
-  const onSubmit = (data: categoryCredential) => {
+  const onSubmit = (data: AddCategoryInput) => {
     addCategory(data, { onSuccess: onClose });
   };
 

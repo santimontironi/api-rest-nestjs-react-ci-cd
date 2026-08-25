@@ -1,8 +1,7 @@
 import api from "./api";
-import type { LoginCredentials, ForgotPasswordCredentials, ResetPasswordCredentials } from "../types/auth.types";
-import { userSchema } from "../../../shared/schemas/auth.schema";
+import { userSchema, type LoginInput, type ForgotPasswordInput, type ResetPasswordInput } from "../../../shared/schemas/auth.schema";
 
-export const loginService = async (credentials: LoginCredentials) => {
+export const loginService = async (credentials: LoginInput) => {
     const response = await api.post("/auth/login", credentials);
     return userSchema.parse(response.data);
 }
@@ -17,12 +16,12 @@ export const logoutService = async () => {
     return response.data;
 }
 
-export const forgotPasswordService = async (credentials: ForgotPasswordCredentials) => {
+export const forgotPasswordService = async (credentials: ForgotPasswordInput) => {
     const response = await api.post("/auth/forgot-password", credentials);
     return response.data;
 }
 
-export const resetPasswordService = async ({ token, ...credentials }: ResetPasswordCredentials & { token: string }) => {
+export const resetPasswordService = async ({ token, ...credentials }: ResetPasswordInput & { token: string }) => {
     const response = await api.post(`/auth/reset-password/${token}`, credentials);
     return response.data;
 }

@@ -2,8 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema } from "../../../shared/schemas/auth.schema";
-import type { LoginCredentials } from "../types/auth.types";
+import { loginSchema, type LoginInput } from "../../../shared/schemas/auth.schema";
 import { useLogin } from "../hooks/useLogin";
 import { useMe } from "../hooks/useMe";
 import InputMailModal from "../components/InputMailModal";
@@ -22,11 +21,11 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<LoginCredentials>({
+  } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = (data: LoginCredentials) => {
+  const onSubmit = (data: LoginInput) => {
     mutate(data);
     reset();
   };

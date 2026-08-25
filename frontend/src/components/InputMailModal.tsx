@@ -1,8 +1,7 @@
 import { useForgotPassword } from "../hooks/useForgotPassword";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { forgotPasswordSchema } from "../../../shared/schemas/auth.schema";
-import type { ForgotPasswordCredentials } from "../types/auth.types";
+import { forgotPasswordSchema, type ForgotPasswordInput } from "../../../shared/schemas/auth.schema";
 import Loader from "./Loader";
 
 const InputMailModal = ({ onClose }: { onClose: () => void }) => {
@@ -12,7 +11,7 @@ const InputMailModal = ({ onClose }: { onClose: () => void }) => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ForgotPasswordCredentials>({
+  } = useForm<ForgotPasswordInput>({
     resolver: zodResolver(forgotPasswordSchema),
   });
 

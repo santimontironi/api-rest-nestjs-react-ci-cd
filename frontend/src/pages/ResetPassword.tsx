@@ -1,8 +1,7 @@
 import { Link, useParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { resetPasswordSchema } from "../../../shared/schemas/auth.schema"
-import type { ResetPasswordCredentials } from "../types/auth.types"
+import { resetPasswordSchema, type ResetPasswordInput } from "../../../shared/schemas/auth.schema"
 import { useResetPassword } from "../hooks/useResetPassword"
 import Loader from "../components/Loader"
 
@@ -13,11 +12,11 @@ const ResetPassword = () => {
 
   const invalidToken = !token
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ResetPasswordCredentials>({
+  const { register, handleSubmit, formState: { errors } } = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema)
   })
 
-  const onSubmit = (data: ResetPasswordCredentials) => {
+  const onSubmit = (data: ResetPasswordInput) => {
     if (!token) return
     mutate({ ...data, token })
   }

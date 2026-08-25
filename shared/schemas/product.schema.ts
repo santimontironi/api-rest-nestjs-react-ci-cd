@@ -20,4 +20,5 @@ export const addProductSchema = z.object({
   categoryId: z.string().uuid("El ID de la categoría no es válido"),
 });
 
+export type Product = z.infer<typeof productSchema>;
 export type addProductType = z.infer<typeof addProductSchema>;
