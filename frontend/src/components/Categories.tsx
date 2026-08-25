@@ -1,8 +1,14 @@
 import { useState } from "react"
 import InputCategoryModal from "./InputCategoryModal"
+import CategoryCard from "./CategoryCard"
+import { useGetCategories } from "../hooks/useGetCategories"
+import Loader from "./Loader"
 
 const Categories = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const { data: categories, isPending, isError, error } = useGetCategories()
+
+  const isEmpty = isError && error.message === "No hay categorías agregadas."
 
   return (
     <div className="flex flex-col gap-8 xl:gap-10">
@@ -30,19 +36,41 @@ const Categories = () => {
         <InputCategoryModal onClose={() => setIsModalOpen(false)} />
       )}
 
-      <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-tertiary/15 bg-tertiary/5 px-6 py-16 text-center md:py-24">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <i className="bi bi-tags text-2xl" aria-hidden="true" />
+      {isPending && (
+        <div className="flex justify-center py-16">
+          <Loader inline />
         </div>
-        <div className="flex flex-col gap-1">
-          <p className="text-base font-semibold text-tertiary">
-            Todavía no hay categorías
-          </p>
-          <p className="max-w-xs text-sm text-tertiary/60">
-            Agregá tu primera categoría para empezar a organizar el catálogo.
-          </p>
+      )}
+
+      {isError && !isEmpty && (
+        <div className="rounded-2xl border border-dashed border-tertiary/15 bg-tertiary/5 px-6 py-16 text-center">
+          <p className="text-sm text-red-500">{error.message}</p>
         </div>
-      </div>
+      )}
+
+      {!isPending && (isEmpty || categories?.length === 0) && (
+        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-tertiary/15 bg-tertiary/5 px-6 py-16 text-center md:py-24">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <i className="bi bi-tags text-2xl" aria-hidden="true" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-base font-semibold text-tertiary">
+              Todavía no hay categorías
+            </p>
+            <p className="max-w-xs text-sm text-tertiary/60">
+              Agregá tu primera categoría para empezar a organizar el catálogo.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {categories && categories.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {categories.map((category) => (
+            <CategoryCard key={category.id} category={category} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,8 +1,7 @@
 import api from "./api";
-import { categorySchema } from "../../../shared/schemas/category.schema";
-import type { categoryCredential } from "../types/category.types";
+import { categorySchema, type AddCategoryInput } from "../../../shared/schemas/category.schema";
 
-export const addCategoryService = async (data: categoryCredential) => {
+export const addCategoryService = async (data: AddCategoryInput) => {
     const response = await api.post('/categories', data)
     return categorySchema.parse(response.data)
 }
