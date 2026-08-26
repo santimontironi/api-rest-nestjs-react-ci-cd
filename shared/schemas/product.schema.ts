@@ -1,13 +1,20 @@
 import { z } from "zod";
 
+export const categorySchema = z.object({
+  id: z.string().uuid("El ID no es válido"),
+  name: z.string().min(1, "El nombre es obligatorio"),
+  createdAt: z.coerce.date(),
+});
+
 export const productSchema = z.object({
   id: z.string().uuid("El ID no es válido"),
-  image: z.string().optional(),
+  image: z.string().optional().nullable(),
   name: z.string().min(1, "El nombre es obligatorio"),
   description: z.string().min(1, "La descripción es obligatoria"),
   price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
   stock: z.number().min(0, "El stock debe ser mayor o igual a 0"),
   categoryId: z.string().uuid("El ID de la categoría no es válido"),
+  category: categorySchema,
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });

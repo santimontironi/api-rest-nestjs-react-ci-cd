@@ -11,7 +11,7 @@ export class ProductsService {
   ) {}
 
   async getProducts() {
-    const products = await this.prismaService.product.findMany()
+    const products = await this.prismaService.product.findMany({ include: { category: true } })
 
     if (products.length == 0) {
       throw new NotFoundException('No hay productos agregados.')
@@ -20,11 +20,18 @@ export class ProductsService {
     return products
   }
 
-  async addProduct(dto: addProductType, image: Express.Multer.File) {
-    const imageUrl = await this.cloudinaryService.uploadImage(image.buffer)
+  async addProduct(dto: addProductType, image?: Express.Multer.File) {
+    let imageUrl: string | undefined
+
+    if (image) {
+      imageUrl = await this.cloudinaryService.uploadImage(image.buffer)
+    }
 
     return this.prismaService.product.create({
-      data: { ...dto, image: imageUrl },
+      data: {
+        ...dto,
+        ...(imageUrl && { image: imageUrl }),
+      },
     })
   }
 }

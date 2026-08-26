@@ -19,7 +19,6 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
   });
 
   const [image, setImage] = useState<File | null>(null);
-  const [imageError, setImageError] = useState<string | null>(null);
 
   const { mutate: addProduct, isPending, error } = useAddProduct()
 
@@ -32,12 +31,6 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
       : "Seleccioná una categoría";
 
   const onSubmit = (data: addProductCredentials) => {
-    if (!image) {
-      setImageError("La imagen es obligatoria");
-      return;
-    }
-
-    setImageError(null);
     addProduct({ ...data, image }, { onSuccess: onClose });
   };
 
@@ -210,9 +203,6 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
                 className="flex h-11 w-full items-center rounded-lg border border-tertiary/10 bg-tertiary/5 px-3 text-sm text-tertiary/60 transition-colors duration-150 outline-none file:mr-3 file:h-7 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-3 file:text-xs file:font-semibold file:text-secondary file:transition-colors file:duration-150 hover:file:bg-tertiary focus-visible:border-primary focus-visible:bg-secondary focus-visible:ring-2 focus-visible:ring-primary/20"
                 onChange={(event) => setImage(event.target.files?.[0] ?? null)}
               />
-              {imageError && (
-                <span className="text-xs text-red-500">{imageError}</span>
-              )}
             </div>
           </div>
 

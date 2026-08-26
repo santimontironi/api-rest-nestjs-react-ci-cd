@@ -9,7 +9,8 @@ export const addProductService = async ({ image, ...data }: addProductPayload) =
   formData.append("price", String(data.price));
   formData.append("stock", String(data.stock));
   formData.append("categoryId", data.categoryId);
-  formData.append("image", image);
+
+  if(image) formData.append("image", image);
 
   const response = await api.post("/products", formData);
   return productSchema.parse(response.data);

@@ -26,7 +26,7 @@ export class ProductsController {
       new ParseFilePipeBuilder()
         .addFileTypeValidator({ fileType: UPLOAD_ALLOWED_IMAGE_TYPES })
         .addMaxSizeValidator({ maxSize: UPLOAD_MAX_IMAGE_SIZE })
-        .build({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
+        .build({ errorHttpStatusCode: HttpStatus.BAD_REQUEST, fileIsRequired: false }),
     )
     image: Express.Multer.File,
   ) {

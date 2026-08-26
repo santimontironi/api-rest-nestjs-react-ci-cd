@@ -65,7 +65,7 @@ const Categories = () => {
       )}
 
       {categories && categories.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:gap-6">
           {categories.map((category) => (
             <CategoryCard key={category.id} category={category} />
           ))}
