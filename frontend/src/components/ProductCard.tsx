@@ -15,6 +15,7 @@ const ProductCard = ({ product }: { product: Product }) => {
       <div className="mt-2 flex items-center justify-between text-sm">
         <span className="font-semibold text-primary">${product.price.toFixed(2)}</span>
         <span className="text-tertiary/60">Stock: {product.stock}</span>
+        <span className="text-tertiary/60">Categoría: {product.category.name}</span>
       </div>
     </div>
   );

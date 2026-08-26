@@ -16,6 +16,19 @@ export class CategoriesService {
     return categories
   }
 
+  async getCategoryById(id: string) {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+      include: { products: true },
+    })
+
+    if (!category) {
+      throw new NotFoundException('Categoría no encontrada.')
+    }
+
+    return category
+  }
+
   async newCategory(dto: AddCategoryInput) {
     const existingCategory = await this.prisma.category.findFirst({
       where: { name: dto.name },
