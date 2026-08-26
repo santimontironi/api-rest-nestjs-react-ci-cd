@@ -31,8 +31,6 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
       : "Seleccioná una categoría";
 
   const onSubmit = (data: addProductCredentials) => {
-    if (!image) return;
-
     addProduct({ ...data, image }, { onSuccess: onClose });
   };
 
