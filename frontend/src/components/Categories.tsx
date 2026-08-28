@@ -1,14 +1,25 @@
 import { useState } from "react"
 import InputCategoryModal from "./InputCategoryModal"
 import CategoryCard from "./CategoryCard"
+import CategoryDetail from "./CategoryDetail"
 import { useGetCategories } from "../hooks/useGetCategories"
 import Loader from "./Loader"
 
 const Categories = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const { data: categories, isPending, isError, error } = useGetCategories()
 
   const isEmpty = isError && error.message === "No hay categorías agregadas."
+
+  if (selectedCategoryId) {
+    return (
+      <CategoryDetail
+        categoryId={selectedCategoryId}
+        onBack={() => setSelectedCategoryId(null)}
+      />
+    )
+  }
 
   return (
     <div className="flex flex-col gap-8 xl:gap-10">
@@ -34,6 +45,12 @@ const Categories = () => {
 
       {isModalOpen && (
         <InputCategoryModal onClose={() => setIsModalOpen(false)} />
+      )}
+
+      {categories && categories.length > 0 && (
+        <p className="text-center text-sm text-tertiary/50">
+          Total de categorías: <span className="font-semibold text-tertiary/80">{categories.length}</span>
+        </p>
       )}
 
       {isPending && (
@@ -67,7 +84,11 @@ const Categories = () => {
       {categories && categories.length > 0 && (
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:gap-6">
           {categories.map((category) => (
-            <CategoryCard key={category.id} category={category} />
+            <CategoryCard
+              key={category.id}
+              category={category}
+              onClick={() => setSelectedCategoryId(category.id)}
+            />
           ))}
         </div>
       )}

@@ -11,7 +11,10 @@ export class ProductsService {
   ) {}
 
   async getProducts() {
-    const products = await this.prismaService.product.findMany({ include: { category: true } })
+    const products = await this.prismaService.product.findMany({
+      include: { category: true },
+      orderBy: { createdAt: 'desc' },
+    })
 
     if (products.length == 0) {
       throw new NotFoundException('No hay productos agregados.')
@@ -32,6 +35,30 @@ export class ProductsService {
         ...dto,
         ...(imageUrl && { image: imageUrl }),
       },
+      include: { category: true },
     })
+  }
+
+  async getProductById(id: string) {
+    const product = await this.prismaService.product.findUnique({
+      where: { id },
+      include: { category: true },
+    })
+
+    if (!product) {
+      throw new NotFoundException('Producto no encontrado.')
+    }
+
+    return product
+  }
+
+  async deleteProduct(id: string) {
+    const product = await this.prismaService.product.findUnique({ where: { id } })
+
+    if (!product) {
+      throw new NotFoundException('Producto no encontrado.')
+    }
+
+    return this.prismaService.product.delete({ where: { id } })
   }
 }
