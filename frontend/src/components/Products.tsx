@@ -1,14 +1,25 @@
 import { useState } from "react"
 import InputProductModal from "./InputProductModal"
-import ProductCard from "./ProductCard"
+import ProductsTable from "./ProductsTable"
+import ProductDetail from "./ProductDetail"
 import { useGetProducts } from "../hooks/useGetProducts"
 import Loader from "./Loader"
 
 const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const { data: products, isPending, isError, error } = useGetProducts()
 
   const isEmpty = isError && error.message === "No hay productos agregados."
+
+  if (selectedProductId) {
+    return (
+      <ProductDetail
+        productId={selectedProductId}
+        onBack={() => setSelectedProductId(null)}
+      />
+    )
+  }
 
   return (
     <div className="flex flex-col gap-8 xl:gap-10">
@@ -34,6 +45,23 @@ const Products = () => {
 
       {isModalOpen && (
         <InputProductModal onClose={() => setIsModalOpen(false)} />
+      )}
+
+      {products && products.length > 0 && (
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm text-tertiary/50">
+            Total de productos: <span className="font-semibold text-tertiary/80">{products.length}</span>
+          </p>
+
+          <div className="relative w-full md:w-96">
+            <i className="bi bi-search absolute top-1/2 left-4 -translate-y-1/2 text-base text-primary" aria-hidden="true" />
+            <input
+              type="text"
+              placeholder="Buscar producto..."
+              className="h-12 w-full rounded-xl border-2 border-primary/30 bg-secondary pl-11 pr-4 text-base text-tertiary shadow-[0_10px_30px_-15px] shadow-primary/40 outline-none placeholder:text-tertiary/40 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+            />
+          </div>
+        </div>
       )}
 
       {isPending && (
@@ -65,11 +93,10 @@ const Products = () => {
       )}
 
       {products && products.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <ProductsTable
+          products={products}
+          onProductClick={(product) => setSelectedProductId(product.id)}
+        />
       )}
     </div>
   )

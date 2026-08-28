@@ -10,7 +10,7 @@ export const addProductService = async ({ image, ...data }: addProductPayload) =
   formData.append("stock", String(data.stock));
   formData.append("categoryId", data.categoryId);
 
-  if(image) formData.append("image", image);
+  if (image) formData.append("image", image);
 
   const response = await api.post("/products", formData);
   return productSchema.parse(response.data);
@@ -19,4 +19,14 @@ export const addProductService = async ({ image, ...data }: addProductPayload) =
 export const getProductsService = async () => {
   const response = await api.get('/products')
   return productSchema.array().parse(response.data)
+}
+
+export const deleteProduct = async (id: string) => {
+  const response = await api.delete(`/products/${id}`)
+  return productSchema.parse(response.data)
+}
+
+export const getProductByIdService = async (id: string) => {
+  const response = await api.get(`/products/${id}`)
+  return productSchema.parse(response.data)
 }

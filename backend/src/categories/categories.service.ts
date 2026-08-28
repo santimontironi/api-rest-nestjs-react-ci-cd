@@ -7,7 +7,9 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getCategories() {
-    const categories = await this.prisma.category.findMany()
+    const categories = await this.prisma.category.findMany({
+      include: { _count: { select: { products: true } } },
+    })
 
     if (categories.length == 0) {
       throw new NotFoundException('No hay categorías agregadas.')
@@ -19,7 +21,7 @@ export class CategoriesService {
   async getCategoryById(id: string) {
     const category = await this.prisma.category.findUnique({
       where: { id },
-      include: { products: true },
+      include: { products: { include: { category: true } } },
     })
 
     if (!category) {

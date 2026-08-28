@@ -14,5 +14,5 @@ export const getCategoriesService = async () => {
 
 export const getCategoryByIdService = async (id: string) => {
     const response = await api.get(`/categories/${id}`)
-    return categoryWithProductsSchema.parse(response)
+    return categoryWithProductsSchema.parse(response.data)
 }
