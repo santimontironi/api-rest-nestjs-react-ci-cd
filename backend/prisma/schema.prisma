@@ -23,6 +23,14 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+model Customer {
+  id      String @id @default(uuid())
+  name    String
+  surname String
+  phone   String
+  sales   Sale[]
+}
+
 model Category {
   id        String    @id @default(uuid())
   name      String    @unique
@@ -45,11 +53,16 @@ model Product {
 }
 
 model Sale {
-  id        String     @id @default(uuid())
-  total     Float
-  items     SaleItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id              String     @id @default(uuid())
+  total           Float
+  customerId      String?
+  customer        Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName    String?
+  customerSurname String?
+  customerPhone   String?
+  items           SaleItem[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 }
 
 model SaleItem {

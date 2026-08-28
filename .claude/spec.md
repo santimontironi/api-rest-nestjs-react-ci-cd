@@ -40,10 +40,13 @@
 
 ## Modelos de base de datos
 
-Existen cinco modelos: `User`, `Category`, `Product`, `Sale` y `SaleItem`. Una `Category` tiene
-muchos `Product` (1 a N): cada producto pertenece a una única categoría. **No hay relación entre
-`User` y `Product`**: los productos son un catálogo compartido, y la autenticación controla
-*quién* puede operar sobre él, no *qué* productos ve cada uno.
+Existen seis modelos: `User`, `Customer`, `Category`, `Product`, `Sale` y `SaleItem`. Una
+`Category` tiene muchos `Product` (1 a N): cada producto pertenece a una única categoría. **No hay
+relación entre `User` y `Product`**: los productos son un catálogo compartido, y la autenticación
+controla *quién* puede operar sobre él, no *qué* productos ve cada uno.
+
+Un `Customer` puede tener muchas `Sale` (1 a N), pero la relación es **opcional**: solo se dan de
+alta los clientes frecuentes, así que una venta puede no tener ningún cliente asociado.
 
 El borrado (`DELETE`) de `Category` y `Product` es permanente, no soft delete: es seguro porque
 el historial de ventas no depende de que sigan existiendo (ver `SaleItem` más abajo).
@@ -67,6 +70,16 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 | `surname` | `String` | |
 | `createdAt` | `DateTime` | `@default(now())` |
 | `updatedAt` | `DateTime` | `@updatedAt` |
+
+### Customer
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | `String` | PK, `@default(uuid())` |
+| `name` | `String` | |
+| `surname` | `String` | |
+| `phone` | `String` | |
+| `sales` | `Sale[]` | Lado inverso de la relación con `Sale` |
 
 ### Category
 
@@ -100,6 +113,11 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 |---|---|---|
 | `id` | `String` | PK, `@default(uuid())` |
 | `total` | `Float` | Suma de `quantity * unitPrice` de todas sus líneas |
+| `customerId` | `String?` | FK a `Customer.id`, opcional. `onDelete: SetNull`: si el cliente se borra, la venta queda sin cliente asociado, sin perder el resto de su información |
+| `customer` | `Customer?` | `@relation(fields: [customerId], references: [id])` |
+| `customerName` | `String?` | Nombre del cliente al momento de la venta (snapshot, no cambia si el cliente se renombra o se borra después). `null` si la venta no tuvo cliente asociado |
+| `customerSurname` | `String?` | Apellido del cliente al momento de la venta (snapshot, mismo criterio que `customerName`) |
+| `customerPhone` | `String?` | Teléfono del cliente al momento de la venta (snapshot, mismo criterio que `customerName`). Se snapshotea porque son clientes frecuentes: si el cliente avisa que cambió de número, se actualiza en `Customer`, pero el historial conserva el que tenía en el momento de cada venta |
 | `items` | `SaleItem[]` | Lado inverso de la relación con `SaleItem` |
 | `createdAt` | `DateTime` | `@default(now())`. Fecha de la venta, usada para los filtros de reportes |
 | `updatedAt` | `DateTime` | `@updatedAt` |
@@ -212,16 +230,40 @@ Todos requieren autenticación.
 - Igual que en productos, el borrado es seguro porque el historial de ventas no depende de que la
   categoría o sus productos sigan existiendo (ver `SaleItem`).
 
+## Endpoints de clientes
+
+Todos requieren autenticación. Permiten dar de alta, modificar y dar de baja clientes dentro del
+sistema; solo se cargan los clientes **frecuentes**, no todos los que compran.
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/customers` | Lista los clientes. Alimenta el selector de cliente del formulario de venta |
+| `GET` | `/customers/:id` | Detalle de un cliente |
+| `POST` | `/customers` | Da de alta un cliente (`name`, `surname`, `phone`) |
+| `PATCH` | `/customers/:id` | Modifica un cliente |
+| `DELETE` | `/customers/:id` | Da de baja (elimina) un cliente de forma permanente |
+
+- Un `id` inexistente responde `404`.
+- `DELETE` es un borrado real, no soft delete: es seguro porque `Sale.customerId` queda en `null`
+  (`onDelete: SetNull`) sin perder el resto de la información de la venta.
+
 ## Endpoints de ventas
 
 Todos requieren autenticación.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/sales` | Lista las ventas (soporta filtros por rango de fechas) |
+| `GET` | `/sales` | Lista las ventas (soporta filtros por rango de fechas y por `customerId`) |
 | `GET` | `/sales/:id` | Detalle de una venta con sus líneas |
-| `POST` | `/sales` | Registra una venta con una o más líneas (`productId` + `quantity`) |
+| `POST` | `/sales` | Registra una venta con una o más líneas (`productId` + `quantity`) y, opcionalmente, un `customerId` |
 
+- El `customerId` de una venta es **opcional**: solo se asocia cuando el comprador es un cliente
+  frecuente ya dado de alta. Cuando se envía, `customerName`, `customerSurname` y `customerPhone`
+  se toman del cliente en ese momento y quedan como snapshot (no cambian si el cliente actualiza
+  su teléfono, se renombra o se borra después).
+- El filtro `customerId` de `GET /sales` alimenta la vista de historial de compras de un cliente:
+  al hacer click en un cliente desde el frontend, se listan sus ventas reusando este mismo
+  endpoint.
 - Al registrar una venta se valida que cada producto tenga **stock suficiente**; si no lo tiene,
   responde `400` y no se crea la venta ni se descuenta stock de ninguna línea.
 - La creación de la venta y el descuento de stock de todos los productos involucrados es una
@@ -242,6 +284,7 @@ su actividad de un vistazo.
 | `GET` | `/reports/sales-by-category` | Ventas agrupadas por categoría de producto, en el rango filtrado |
 | `GET` | `/reports/sales-trend` | Ventas agrupadas por período (`day` o `month`, vía query param `granularity`), para ver evolución en el tiempo |
 | `GET` | `/reports/top-products` | Top N productos más vendidos en el rango filtrado, ordenable por cantidad o por monto (`orderBy`), con `limit` |
+| `GET` | `/reports/top-customers` | Top N clientes con más compras en el rango filtrado, ordenable por cantidad de ventas o por monto (`orderBy`), con `limit` |
 | `GET` | `/reports/stock-by-category` | Stock actual agrupado por categoría |
 | `GET` | `/reports/low-stock` | Productos con stock por debajo de un umbral (`threshold`) |
 | `GET` | `/reports/products-by-category` | Cantidad de productos por categoría (foto fija del catálogo, no depende del rango de fechas) |
@@ -254,6 +297,7 @@ su actividad de un vistazo.
     - Ventas por categoría (`/reports/sales-by-category`)
     - Ventas por mes/día, últimos 6-12 meses o últimos 30 días (`/reports/sales-trend`)
     - Top N productos más vendidos, por cantidad o por monto (`/reports/top-products`)
+    - Top N clientes con más compras, por cantidad o por monto (`/reports/top-customers`)
     - Stock actual por categoría o productos con stock bajo (`/reports/stock-by-category`, `/reports/low-stock`)
   - **Torta/dona** — relación parte-todo con pocas categorías, no series temporales:
     - Cantidad de productos por categoría (`/reports/products-by-category`)
@@ -265,6 +309,9 @@ su actividad de un vistazo.
   editado o eliminado después de la venta. `/reports/stock-by-category`, `/reports/low-stock` y
   `/reports/products-by-category` sí reflejan el catálogo **actual** (`Product`/`Category`),
   porque son fotos del estado presente, no del histórico de ventas.
+- `/reports/top-customers` agrupa por `customerId`, usando `customerName`/`customerSurname` de
+  `Sale` (snapshot) para mostrar el nombre; las ventas sin `customerId` (sin cliente asociado) no
+  entran en este reporte.
 - Estos endpoints, al ser de solo lectura y agregación, no participan del caché de Redis de
   productos (ver sección Redis).
 
