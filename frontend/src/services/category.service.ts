@@ -1,5 +1,6 @@
 import api from "./api";
 import { categorySchema, type AddCategoryInput } from "../../../shared/schemas/category.schema";
+import { categoryWithProductsSchema } from "../../../shared/schemas/product.schema";
 
 export const addCategoryService = async (data: AddCategoryInput) => {
     const response = await api.post('/categories', data)
@@ -11,3 +12,7 @@ export const getCategoriesService = async () => {
     return categorySchema.array().parse(response.data)
 }
 
+export const getCategoryByIdService = async (id: string) => {
+    const response = await api.get(`/categories/${id}`)
+    return categoryWithProductsSchema.parse(response)
+}
