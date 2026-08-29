@@ -2,8 +2,8 @@ import { Link, useParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { resetPasswordSchema, type ResetPasswordInput } from "../../../shared/schemas/auth.schema"
-import { useResetPassword } from "../hooks/useResetPassword"
-import Loader from "../components/Loader"
+import { useResetPassword } from "../hooks/authHooks/useResetPassword"
+import Loader from "../components/ui/Loader"
 
 const ResetPassword = () => {
 

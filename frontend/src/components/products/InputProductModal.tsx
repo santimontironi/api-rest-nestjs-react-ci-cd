@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAddProduct } from "../hooks/useAddProduct";
-import { useGetCategories } from "../hooks/useGetCategories";
-import type { addProductCredentials, addProductFormInput } from "../types/product.types";
-import { addProductSchema } from "../../../shared/schemas/product.schema";
-import Loader from "./Loader";
+import { useAddProduct } from "../../hooks/productsHooks/useAddProduct";
+import { useGetCategories } from "../../hooks/categoriesHooks/useGetCategories";
+import { addProductSchema, type addProductType, type addProductFormInput } from "../../../../shared/schemas/product.schema";
+import Loader from "../ui/Loader";
 
 const InputProductModal = ({ onClose }: { onClose: () => void }) => {
 
@@ -14,7 +13,7 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
   // z.output/infer  → resultado validado que recibe el onSubmit/handleSubmit
   //    ↓ (se re-stringifica a mano para el FormData, por el multipart)
   // string otra vez → lo que efectivamente viaja por HTTP
-  const { register, handleSubmit, formState: { errors } } = useForm<addProductFormInput, unknown, addProductCredentials>({
+  const { register, handleSubmit, formState: { errors } } = useForm<addProductFormInput, unknown, addProductType>({
     resolver: zodResolver(addProductSchema)
   });
 
@@ -30,7 +29,7 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
       ? "No hay categorías creadas"
       : "Seleccioná una categoría";
 
-  const onSubmit = (data: addProductCredentials) => {
+  const onSubmit = (data: addProductType) => {
     addProduct({ ...data, image }, { onSuccess: onClose });
   };
 

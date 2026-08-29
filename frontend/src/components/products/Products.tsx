@@ -2,8 +2,8 @@ import { useState } from "react"
 import InputProductModal from "./InputProductModal"
 import ProductsTable from "./ProductsTable"
 import ProductDetail from "./ProductDetail"
-import { useGetProducts } from "../hooks/useGetProducts"
-import Loader from "./Loader"
+import { useGetProducts } from "../../hooks/productsHooks/useGetProducts"
+import Loader from "../ui/Loader"
 
 const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)

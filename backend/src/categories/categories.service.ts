@@ -44,4 +44,14 @@ export class CategoriesService {
       data: { name: dto.name },
     })
   }
+
+  async deleteCategory(id: string) {
+    const category = await this.prisma.category.findUnique({ where: { id } })
+
+    if (!category) {
+      throw new NotFoundException('Categoría no encontrada.')
+    }
+
+    await this.prisma.$transaction([this.prisma.product.deleteMany({ where: { categoryId: id } }), this.prisma.category.delete({ where: { id } })])
+  }
 }

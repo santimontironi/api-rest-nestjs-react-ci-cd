@@ -1,8 +1,8 @@
-import { useForgotPassword } from "../hooks/useForgotPassword";
+import { useForgotPassword } from "../../hooks/authHooks/useForgotPassword";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { forgotPasswordSchema, type ForgotPasswordInput } from "../../../shared/schemas/auth.schema";
-import Loader from "./Loader";
+import { forgotPasswordSchema, type ForgotPasswordInput } from "../../../../shared/schemas/auth.schema";
+import Loader from "../ui/Loader";
 
 const InputMailModal = ({ onClose }: { onClose: () => void }) => {
   const { mutate, isPending, isError, isSuccess, error } = useForgotPassword();

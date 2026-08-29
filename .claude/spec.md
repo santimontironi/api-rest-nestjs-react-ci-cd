@@ -31,6 +31,12 @@
 | Cliente HTTP | Axios |
 | Ruteo | React Router |
 
+`frontend/src/components/` y `frontend/src/hooks/` se organizan por dominio, una subcarpeta por
+entidad (`categories/`, `products/`, `customers/`, `sales/`), con `auth/` para el flujo de
+autenticación y `ui/` para el resto de componentes sin dominio propio. Las subcarpetas de
+`hooks/` llevan el sufijo `Hooks` (`categoriesHooks/`, `productsHooks/`, `authHooks/`) para no
+confundirse con las de `components/`. Detalle completo del árbol en `.claude/rules.md`.
+
 ### Global
 
 | Área | Tecnología |
