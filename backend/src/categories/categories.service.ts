@@ -7,15 +7,9 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getCategories() {
-    const categories = await this.prisma.category.findMany({
+    return this.prisma.category.findMany({
       include: { _count: { select: { products: true } } },
     })
-
-    if (categories.length == 0) {
-      throw new NotFoundException('No hay categorías agregadas.')
-    }
-
-    return categories
   }
 
   async getCategoryById(id: string) {
@@ -52,6 +46,8 @@ export class CategoriesService {
       throw new NotFoundException('Categoría no encontrada.')
     }
 
-    await this.prisma.$transaction([this.prisma.product.deleteMany({ where: { categoryId: id } }), this.prisma.category.delete({ where: { id } })])
+    const [, deletedCategory] = await this.prisma.$transaction([this.prisma.product.deleteMany({ where: { categoryId: id } }), this.prisma.category.delete({ where: { id } })])
+
+    return deletedCategory
   }
 }

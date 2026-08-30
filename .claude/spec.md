@@ -207,8 +207,7 @@ Todos requieren autenticación y operan sobre el catálogo compartido.
 | `DELETE` | `/products/:id` | Elimina el producto de forma permanente |
 
 - Un `id` inexistente responde `404`.
-- `GET /products` responde `404` si el catálogo está vacío (no un array vacío). El frontend
-  distingue este caso puntual (mensaje "no hay productos") de cualquier otro error.
+- `GET /products` responde `200` con un array vacío si el catálogo está vacío.
 - `DELETE` es un borrado real, no soft delete: es seguro porque `SaleItem` guarda su propio
   snapshot (`productName`, `categoryName`, `unitPrice`) y no depende de que el producto siga
   existiendo.
@@ -226,7 +225,7 @@ Todos requieren autenticación.
 | `DELETE` | `/categories/:id` | Elimina la categoría y sus productos de forma permanente, en cascada |
 
 - Un `id` inexistente responde `404`.
-- `GET /categories` responde `404` si no hay categorías cargadas (no un array vacío), mismo
+- `GET /categories` responde `200` con un array vacío si no hay categorías cargadas, mismo
   criterio que `GET /products`.
 - `name` es único (`@unique` en el schema): `POST` y `PATCH` responden `400` si ya existe otra
   categoría con ese nombre.

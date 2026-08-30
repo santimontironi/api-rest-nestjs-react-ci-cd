@@ -1,50 +1,34 @@
-import Swal from "sweetalert2";
+import swal from "../../utils/swal";
 import type { Product } from "../../../../shared/schemas/product.schema";
 import { useDeleteProduct } from "../../hooks/productsHooks/useDeleteProduct";
 
-const ProductsTable = ({ products, onProductClick}: { products: Product[]; onProductClick?: (product: Product) => void; }) => {
+const ProductsTable = ({ products, onProductClick }: { products: Product[]; onProductClick?: (product: Product) => void; }) => {
   const { mutate: deleteProduct } = useDeleteProduct();
 
   const handleDelete = (product: Product) => {
-    Swal.fire({
+    swal.fire({
       title: "¿Eliminar producto?",
       text: `Se eliminará "${product.name}" del catálogo. Esta acción no se puede deshacer.`,
       icon: "warning",
-      iconColor: "#b81104",
       showCancelButton: true,
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#b81104",
-      cancelButtonColor: "#00081233",
-      background: "#fffacd",
-      color: "#000812",
-      reverseButtons: true,
-      buttonsStyling: true,
-      customClass: { popup: "rounded-2xl" },
     }).then((result) => {
       if (!result.isConfirmed) return;
 
       deleteProduct(product.id, {
         onSuccess: () =>
-          Swal.fire({
+          swal.fire({
             title: "Producto eliminado",
             icon: "success",
-            iconColor: "#b81104",
-            confirmButtonColor: "#b81104",
-            background: "#fffacd",
-            color: "#000812",
             timer: 1800,
             showConfirmButton: false,
           }),
         onError: (error) =>
-          Swal.fire({
+          swal.fire({
             title: "No se pudo eliminar",
             text: error.message,
             icon: "error",
-            iconColor: "#b81104",
-            confirmButtonColor: "#b81104",
-            background: "#fffacd",
-            color: "#000812",
           }),
       });
     });
@@ -113,110 +97,110 @@ const ProductsTable = ({ products, onProductClick}: { products: Product[]; onPro
       </div>
 
       <div className="hidden overflow-hidden rounded-2xl border border-tertiary/10 bg-secondary shadow-[0_10px_30px_-15px] shadow-tertiary/30 xl:block">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-160 border-collapse text-left">
-          <thead>
-            <tr className="border-b border-tertiary/10 bg-tertiary/5">
-              <th scope="col" className="w-16 px-4 py-3 md:px-6">
-                <span className="sr-only">Imagen</span>
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
-              >
-                Producto
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
-              >
-                Categoría
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
-              >
-                Stock
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
-              >
-                Creado
-              </th>
-              <th
-                scope="col"
-                className="px-4 py-3 text-right text-xs font-semibold text-primary md:px-6"
-              >
-                Precio
-              </th>
-              <th scope="col" className="w-14 px-4 py-3 md:px-6">
-                <span className="sr-only">Acciones</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-tertiary/10">
-            {products.map((product) => (
-              <tr
-                key={`row-${product.id}`}
-                onClick={() => onProductClick?.(product)}
-                className="group cursor-pointer transition-colors duration-150 hover:bg-primary"
-              >
-                <td className="px-4 py-3 md:px-6">
-                  <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-tertiary/5 transition-colors duration-150 group-hover:bg-secondary/10 md:h-12 md:w-12">
-                    {product.image ? (
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-tertiary/20 transition-colors duration-150 group-hover:text-secondary/50">
-                        <i className="bi bi-image text-lg" aria-hidden="true" />
-                      </div>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 md:px-6">
-                  <div className="flex max-w-64 flex-col gap-0.5 xl:max-w-xs">
-                    <p className="truncate text-sm font-semibold text-tertiary transition-colors duration-150 group-hover:text-secondary md:text-base">
-                      {product.name}
-                    </p>
-                    <p className="truncate text-xs text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70">
-                      {product.description}
-                    </p>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-sm text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70 md:px-6">
-                  {product.category.name}
-                </td>
-                <td className="px-4 py-3 text-sm font-medium text-tertiary transition-colors duration-150 group-hover:text-secondary md:px-6">
-                  {product.stock}
-                </td>
-                <td className="px-4 py-3 text-sm text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70 md:px-6">
-                  {product.createdAt.toLocaleDateString("es-AR")}
-                </td>
-                <td className="px-4 py-3 text-right text-sm font-bold text-primary transition-colors duration-150 group-hover:text-secondary md:px-6 md:text-base">
-                  ${product.price.toFixed(2)}
-                </td>
-                <td className="px-4 py-3 text-right md:px-6">
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleDelete(product);
-                    }}
-                    aria-label={`Eliminar ${product.name}`}
-                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 group-hover:text-secondary hover:bg-secondary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
-                  >
-                    <i className="bi bi-trash3 text-base" aria-hidden="true" />
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-160 border-collapse text-left">
+            <thead>
+              <tr className="border-b border-tertiary/10 bg-tertiary/5">
+                <th scope="col" className="w-16 px-4 py-3 md:px-6">
+                  <span className="sr-only">Imagen</span>
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
+                >
+                  Producto
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
+                >
+                  Categoría
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
+                >
+                  Stock
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
+                >
+                  Creado
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-right text-xs font-semibold text-primary md:px-6"
+                >
+                  Precio
+                </th>
+                <th scope="col" className="w-14 px-4 py-3 md:px-6">
+                  <span className="sr-only">Acciones</span>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-tertiary/10">
+              {products.map((product) => (
+                <tr
+                  key={`row-${product.id}`}
+                  onClick={() => onProductClick?.(product)}
+                  className="group cursor-pointer transition-colors duration-150 hover:bg-primary"
+                >
+                  <td className="px-4 py-3 md:px-6">
+                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-tertiary/5 transition-colors duration-150 group-hover:bg-secondary/10 md:h-12 md:w-12">
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-tertiary/20 transition-colors duration-150 group-hover:text-secondary/50">
+                          <i className="bi bi-image text-lg" aria-hidden="true" />
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 md:px-6">
+                    <div className="flex max-w-64 flex-col gap-0.5 xl:max-w-xs">
+                      <p className="truncate text-sm font-semibold text-tertiary transition-colors duration-150 group-hover:text-secondary md:text-base">
+                        {product.name}
+                      </p>
+                      <p className="truncate text-xs text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70">
+                        {product.description}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70 md:px-6">
+                    {product.category.name}
+                  </td>
+                  <td className="px-4 py-3 text-sm font-medium text-tertiary transition-colors duration-150 group-hover:text-secondary md:px-6">
+                    {product.stock}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70 md:px-6">
+                    {product.createdAt.toLocaleDateString("es-AR")}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-bold text-primary transition-colors duration-150 group-hover:text-secondary md:px-6 md:text-base">
+                    ${product.price.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3 text-right md:px-6">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleDelete(product);
+                      }}
+                      aria-label={`Eliminar ${product.name}`}
+                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 group-hover:text-secondary hover:bg-secondary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                    >
+                      <i className="bi bi-trash3 text-base" aria-hidden="true" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );

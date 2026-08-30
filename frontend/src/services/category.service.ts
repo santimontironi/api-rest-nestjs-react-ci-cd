@@ -18,5 +18,6 @@ export const getCategoryByIdService = async (id: string) => {
 }
 
 export const deleteCategoryService = async (id: string) => {
-    await api.delete(`/categories/${id}`)
+    const response = await api.delete(`/categories/${id}`)
+    return categorySchema.parse(response.data)
 }

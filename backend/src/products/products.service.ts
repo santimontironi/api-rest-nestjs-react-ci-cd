@@ -11,16 +11,10 @@ export class ProductsService {
   ) {}
 
   async getProducts() {
-    const products = await this.prismaService.product.findMany({
+    return this.prismaService.product.findMany({
       include: { category: true },
       orderBy: { createdAt: 'desc' },
     })
-
-    if (products.length == 0) {
-      throw new NotFoundException('No hay productos agregados.')
-    }
-
-    return products
   }
 
   async addProduct(dto: addProductType, image?: Express.Multer.File) {
@@ -59,6 +53,6 @@ export class ProductsService {
       throw new NotFoundException('Producto no encontrado.')
     }
 
-    return this.prismaService.product.delete({ where: { id } })
+    return this.prismaService.product.delete({ where: { id }, include: { category: true } })
   }
 }

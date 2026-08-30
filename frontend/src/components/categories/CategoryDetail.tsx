@@ -1,7 +1,9 @@
-import Swal from "sweetalert2";
+import { useState } from "react";
+import swal from "../../utils/swal";
 import { useCategoryById } from "../../hooks/categoriesHooks/useCategoryById";
 import { useDeleteCategory } from "../../hooks/categoriesHooks/useDeleteCategory";
 import ProductsTable from "../products/ProductsTable";
+import ProductDetail from "../products/ProductDetail";
 import Loader from "../ui/Loader";
 import GoBack from "../ui/GoBack";
 import type { CategoryWithProducts } from "../../../../shared/schemas/product.schema";
@@ -9,59 +11,53 @@ import type { CategoryWithProducts } from "../../../../shared/schemas/product.sc
 const CategoryDetail = ({ categoryId, onBack }: { categoryId: string; onBack: () => void }) => {
   const { data: category, isPending, isError, error } = useCategoryById(categoryId);
   const { mutate: deleteCategory } = useDeleteCategory();
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   const handleDelete = (category: CategoryWithProducts) => {
     const hasProducts = category.products.length > 0;
 
-    Swal.fire({
+    swal.fire({
       title: "¿Eliminar categoría?",
       text: hasProducts
         ? `Se eliminará "${category.name}" junto con ${category.products.length} ${category.products.length === 1 ? "producto asociado" : "productos asociados"}. Esta acción no se puede deshacer.`
         : `Se eliminará "${category.name}". Esta acción no se puede deshacer.`,
       icon: "warning",
-      iconColor: "#b81104",
       showCancelButton: true,
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#b81104",
-      cancelButtonColor: "#00081233",
-      background: "#fffacd",
-      color: "#000812",
-      reverseButtons: true,
-      buttonsStyling: true,
-      customClass: { popup: "rounded-2xl" },
     }).then((result) => {
       if (!result.isConfirmed) return;
 
       deleteCategory(category.id, {
         onSuccess: () => {
           onBack();
-          Swal.fire({
+          swal.fire({
             title: "Categoría eliminada",
             icon: "success",
-            iconColor: "#b81104",
-            confirmButtonColor: "#b81104",
-            background: "#fffacd",
-            color: "#000812",
             timer: 1800,
             showConfirmButton: false,
           });
         },
         onError: (error) =>
-          Swal.fire({
+          swal.fire({
             title: "No se pudo eliminar",
             text: error.message,
             icon: "error",
-            iconColor: "#b81104",
-            confirmButtonColor: "#b81104",
-            background: "#fffacd",
-            color: "#000812",
           }),
       });
     });
   };
 
-  const backButton = <GoBack label="Volver a categorías" onBack={onBack} />;
+  const backButton = <GoBack label="Volver" onBack={onBack} />;
+
+  if (selectedProductId) {
+    return (
+      <ProductDetail
+        productId={selectedProductId}
+        onBack={() => setSelectedProductId(null)}
+      />
+    );
+  }
 
   if (isPending) {
     return (
@@ -111,7 +107,10 @@ const CategoryDetail = ({ categoryId, onBack }: { categoryId: string; onBack: ()
       </div>
 
       {category.products.length > 0 ? (
-        <ProductsTable products={category.products} />
+        <ProductsTable
+          products={category.products}
+          onProductClick={(product) => setSelectedProductId(product.id)}
+        />
       ) : (
         <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-tertiary/15 bg-tertiary/5 px-6 py-16 text-center md:py-24">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">

@@ -13,7 +13,7 @@ const menuItems: { key: sidebarItems; label: string; icon: string }[] = [
     { key: "dashboard", label: "Tablero", icon: "bi-grid-1x2" },
     { key: "products", label: "Productos", icon: "bi-box-seam" },
     { key: "categories", label: "Categorías", icon: "bi-tags" },
-    { key: "customers", label: "Clientes", icon: "bi-people" },
+    { key: "customers", label: "Clientes frecuentes", icon: "bi-people" },
     { key: "sales", label: "Ventas", icon: "bi-graph-up-arrow" },
 ];
 

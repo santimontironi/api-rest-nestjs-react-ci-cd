@@ -8,6 +8,7 @@ export const addCustomerSchema = z.object({
 
 export const customerSchema = addCustomerSchema.extend({
   id: z.string().uuid("El ID no es válido"),
+  _count: z.object({ sales: z.number() }).optional(),
 });
 
 export type AddCustomerInput = z.infer<typeof addCustomerSchema>;
