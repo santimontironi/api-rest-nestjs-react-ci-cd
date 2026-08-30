@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { sidebarItems } from "../types/general.types";
 import Sidebar from "../components/ui/Sidebar";
-import Dashboard from "../components/ui/Dashboard";
+import Dashboard from "../components/dashboard/Dashboard";
 import Products from "../components/products/Products";
 import Categories from "../components/categories/Categories";
 import Sales from "../components/sales/Sales";

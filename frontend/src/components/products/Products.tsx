@@ -10,8 +10,6 @@ const Products = () => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const { data: products, isPending, isError, error } = useGetProducts()
 
-  const isEmpty = isError && error.message === "No hay productos agregados."
-
   if (selectedProductId) {
     return (
       <ProductDetail
@@ -70,13 +68,13 @@ const Products = () => {
         </div>
       )}
 
-      {isError && !isEmpty && (
+      {isError && (
         <div className="rounded-2xl border border-dashed border-tertiary/15 bg-tertiary/5 px-6 py-16 text-center">
           <p className="text-sm text-red-500">{error.message}</p>
         </div>
       )}
 
-      {!isPending && (isEmpty || products?.length === 0) && (
+      {!isPending && products?.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-tertiary/15 bg-tertiary/5 px-6 py-16 text-center md:py-24">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <i className="bi bi-box-seam text-2xl" aria-hidden="true" />

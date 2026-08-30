@@ -10,8 +10,6 @@ const Categories = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const { data: categories, isPending, isError, error } = useGetCategories()
 
-  const isEmpty = isError && error.message === "No hay categorías agregadas."
-
   if (selectedCategoryId) {
     return (
       <CategoryDetail
@@ -59,13 +57,13 @@ const Categories = () => {
         </div>
       )}
 
-      {isError && !isEmpty && (
+      {isError && (
         <div className="rounded-2xl border border-dashed border-tertiary/15 bg-tertiary/5 px-6 py-16 text-center">
           <p className="text-sm text-red-500">{error.message}</p>
         </div>
       )}
 
-      {!isPending && (isEmpty || categories?.length === 0) && (
+      {!isPending && categories?.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-tertiary/15 bg-tertiary/5 px-6 py-16 text-center md:py-24">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <i className="bi bi-tags text-2xl" aria-hidden="true" />
