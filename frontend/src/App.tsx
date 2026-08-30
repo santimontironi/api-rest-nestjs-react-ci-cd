@@ -3,7 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import Login from "./pages/Login"
 import ResetPassword from "./pages/ResetPassword"
 import Home from "./pages/Home"
-import VerifyAuth from "./components/VerifyAuth"
+import VerifyAuth from "./components/auth/VerifyAuth"
 import queryClient from "./queryClient"
 
 const App = () => {

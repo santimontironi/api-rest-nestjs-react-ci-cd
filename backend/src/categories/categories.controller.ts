@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UseGuards, Body, Param } from '@nestjs/common'
+import { Controller, Get, Post, Delete, UseGuards, Body, Param } from '@nestjs/common'
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CategoriesService } from './categories.service'
@@ -24,5 +24,11 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard)
   async addCategory(@Body(new ZodValidationPipe(addCategorySchema)) dto: AddCategoryInput) {
     return await this.categoriesService.newCategory(dto)
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async deleteCategory(@Param('id') id: string) {
+    return this.categoriesService.deleteCategory(id)
   }
 }

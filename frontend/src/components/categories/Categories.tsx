@@ -2,8 +2,8 @@ import { useState } from "react"
 import InputCategoryModal from "./InputCategoryModal"
 import CategoryCard from "./CategoryCard"
 import CategoryDetail from "./CategoryDetail"
-import { useGetCategories } from "../hooks/useGetCategories"
-import Loader from "./Loader"
+import { useGetCategories } from "../../hooks/categoriesHooks/useGetCategories"
+import Loader from "../ui/Loader"
 
 const Categories = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)

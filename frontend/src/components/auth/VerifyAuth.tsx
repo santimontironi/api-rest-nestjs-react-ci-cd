@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useMe } from "../hooks/useMe";
-import Loader from "./Loader";
+import { useMe } from "../../hooks/authHooks/useMe";
+import Loader from "../ui/Loader";
 
 const VerifyAuth = ({ children }: { children: React.ReactNode }) => {
     const navigate = useNavigate();

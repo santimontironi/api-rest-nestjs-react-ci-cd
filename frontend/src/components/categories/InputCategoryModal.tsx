@@ -1,8 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addCategorySchema, type AddCategoryInput } from "../../../shared/schemas/category.schema";
-import { useAddCategory } from "../hooks/useAddCategory";
-import Loader from "./Loader";
+import { addCategorySchema, type AddCategoryInput } from "../../../../shared/schemas/category.schema";
+import { useAddCategory } from "../../hooks/categoriesHooks/useAddCategory";
+import Loader from "../ui/Loader";
 
 const InputCategoryModal = ({ onClose }: { onClose: () => void }) => {
   const { register, handleSubmit, formState: { errors } } = useForm<AddCategoryInput>({

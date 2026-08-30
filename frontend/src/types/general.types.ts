@@ -1,1 +1,1 @@
-export type sidebarItems = 'dashboard' | 'sales' | 'products' | 'categories' | 'settings';
+export type sidebarItems = 'dashboard' | 'sales' | 'products' | 'categories' | 'customers' | 'settings';

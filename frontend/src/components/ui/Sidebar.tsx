@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { sidebarItems } from "../types/general.types";
-import { useMe } from "../hooks/useMe";
-import { useLogout } from "../hooks/useLogout";
+import type { sidebarItems } from "../../types/general.types";
+import { useMe } from "../../hooks/authHooks/useMe";
+import { useLogout } from "../../hooks/authHooks/useLogout";
 import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
@@ -13,6 +13,7 @@ const menuItems: { key: sidebarItems; label: string; icon: string }[] = [
     { key: "dashboard", label: "Tablero", icon: "bi-grid-1x2" },
     { key: "products", label: "Productos", icon: "bi-box-seam" },
     { key: "categories", label: "Categorías", icon: "bi-tags" },
+    { key: "customers", label: "Clientes", icon: "bi-people" },
     { key: "sales", label: "Ventas", icon: "bi-graph-up-arrow" },
 ];
 

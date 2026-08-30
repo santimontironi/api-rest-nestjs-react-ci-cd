@@ -1,4 +1,4 @@
-import type { Category } from "../../../shared/schemas/category.schema";
+import type { Category } from "../../../../shared/schemas/category.schema";
 
 const CategoryCard = ({ category, onClick }: { category: Category; onClick?: () => void }) => {
   return (

@@ -1,6 +1,6 @@
 import Swal from "sweetalert2";
-import type { Product } from "../../../shared/schemas/product.schema";
-import { useDeleteProduct } from "../hooks/useDeleteProduct";
+import type { Product } from "../../../../shared/schemas/product.schema";
+import { useDeleteProduct } from "../../hooks/productsHooks/useDeleteProduct";
 
 const ProductsTable = ({ products, onProductClick}: { products: Product[]; onProductClick?: (product: Product) => void; }) => {
   const { mutate: deleteProduct } = useDeleteProduct();

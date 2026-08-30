@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "../../../shared/schemas/auth.schema";
-import { useLogin } from "../hooks/useLogin";
-import { useMe } from "../hooks/useMe";
-import InputMailModal from "../components/InputMailModal";
-import Loader from "../components/Loader";
+import { useLogin } from "../hooks/authHooks/useLogin";
+import { useMe } from "../hooks/authHooks/useMe";
+import InputMailModal from "../components/auth/InputMailModal";
+import Loader from "../components/ui/Loader";
 
 const Login = () => {
   const { data: user } = useMe();

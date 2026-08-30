@@ -1,11 +1,12 @@
 import { useState } from "react";
 import type { sidebarItems } from "../types/general.types";
-import Sidebar from "../components/Sidebar";
-import Dashboard from "../components/Dashboard";
-import Products from "../components/Products";
-import Categories from "../components/Categories";
-import Sales from "../components/Sales";
-import Settings from "../components/Settings";
+import Sidebar from "../components/ui/Sidebar";
+import Dashboard from "../components/ui/Dashboard";
+import Products from "../components/products/Products";
+import Categories from "../components/categories/Categories";
+import Sales from "../components/sales/Sales";
+import Settings from "../components/ui/Settings";
+import Customers from "../components/customers/Customers";
 
 const Home = () => {
 
@@ -21,6 +22,7 @@ const Home = () => {
                 {activeItem === 'categories' && <Categories />}
                 {activeItem === 'sales' && <Sales />}
                 {activeItem === 'settings' && <Settings />}
+                {activeItem === 'customers' && <Customers />}
             </main>
         </div>
     )

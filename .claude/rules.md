@@ -140,16 +140,30 @@ backend/src/
   main.ts
 
 frontend/src/
-  api/           instancia de axios + servicios por dominio
-  components/    componentes reutilizables
-  features/      auth/, products/ (páginas, hooks y esquemas del dominio)
-  hooks/
-  schemas/       esquemas de zod
+  services/      instancia de axios + servicios por dominio
+  components/    organizados por dominio: una subcarpeta por entidad
+                 (categories/, products/, customers/, sales/), auth/ para
+                 componentes del flujo de autenticación (VerifyAuth,
+                 InputMailModal) y ui/ para el resto: componentes genéricos
+                 sin dominio propio (Loader, Sidebar) y pantallas que no son
+                 una entidad (Dashboard, Settings)
+  hooks/         organizados por dominio: una subcarpeta por entidad con
+                 sufijo "Hooks" (categoriesHooks/, productsHooks/, authHooks/),
+                 para no confundirse con las subcarpetas de components/
+  pages/         rutas de nivel superior (Login, Home, ResetPassword, ...)
+  types/         tipos de TypeScript que no derivan de un esquema de Zod
   utils/
     consts/      <dominio>-consts.ts
-  lib/
   App.tsx
 ```
+
+- **Regla de nomenclatura**: dentro de `components/<entidad>/` el nombre de la subcarpeta es solo el
+  nombre de la entidad (`products/`, `categories/`). Dentro de `hooks/<entidad>Hooks/` lleva el
+  sufijo `Hooks` (`productsHooks/`, `categoriesHooks/`), justamente para diferenciarlas de las de
+  `components/` cuando se navega el árbol.
+- Un componente o hook que pertenece a una entidad va en su subcarpeta, aunque se use desde otro
+  dominio (ej. `ProductsTable` vive en `components/products/` aunque `CategoryDetail`, en
+  `components/categories/`, lo importe).
 
 ## Git y CI
 

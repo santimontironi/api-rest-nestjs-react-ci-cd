@@ -1,19 +1,11 @@
-import { useProductById } from "../hooks/useProductById";
-import Loader from "./Loader";
+import { useProductById } from "../../hooks/productsHooks/useProductById";
+import Loader from "../ui/Loader";
+import GoBack from "../ui/GoBack";
 
 const ProductDetail = ({ productId, onBack }: { productId: string; onBack: () => void }) => {
   const { data: product, isPending, isError, error } = useProductById(productId);
 
-  const backButton = (
-    <button
-      type="button"
-      onClick={onBack}
-      className="flex w-fit cursor-pointer items-center gap-2 text-sm font-semibold text-tertiary/60 outline-none transition-colors duration-150 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
-    >
-      <i className="bi bi-arrow-left text-base" aria-hidden="true" />
-      Volver a productos
-    </button>
-  );
+  const backButton = <GoBack label="Volver a productos" onBack={onBack} />;
 
   if (isPending) {
     return (
