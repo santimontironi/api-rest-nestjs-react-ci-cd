@@ -6,7 +6,7 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from '../../../shared/schemas/auth.schema'
 import type { ForgotPasswordInput, LoginInput, RegisterInput, ResetPasswordInput } from '../../../shared/schemas/auth.schema'
-import { THROTTLE_AUTH_LIMIT, THROTTLE_AUTH_TTL } from '../utils/consts/auth.consts'
+import { THROTTLE_AUTH_LIMIT, THROTTLE_AUTH_TTL } from '../utils/consts/rateLimit-consts'
 
 @Controller('auth')
 export class AuthController {

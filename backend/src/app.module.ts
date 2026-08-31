@@ -6,9 +6,10 @@ import { AuthModule } from './auth/auth.module'
 import { ProductsModule } from './products/products.module'
 import { MailModule } from './mail/mail.module'
 import { PrismaModule } from './prisma/prisma.module'
-import { THROTTLE_GLOBAL_LIMIT, THROTTLE_GLOBAL_TTL } from './utils/consts/auth.consts'
+import { THROTTLE_GLOBAL_LIMIT, THROTTLE_GLOBAL_TTL } from './utils/consts/rateLimit-consts'
 import { CategoriesModule } from './categories/categories.module'
 import { CustomersModule } from './customers/customers.module'
+import { SalesModule } from './sales/sales.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { CustomersModule } from './customers/customers.module'
     MailModule,
     CategoriesModule,
     CustomersModule,
+    SalesModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }], // aplica el límite a toda la app. le dice a Nest "usá ThrottlerGuard como guard en cada request de la app
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }], // aplica el límite a toda la app. le dice a Nest "usá ThrottlerGuard como guard en cada request de la app"
 })
 export class AppModule {}
