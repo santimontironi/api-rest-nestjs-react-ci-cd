@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
-import type { addProductType } from '../../../shared/schemas/product.schema'
+import type { addProductType, editProductInput } from '../../../shared/schemas/product.schema'
 
 @Injectable()
 export class ProductsService {
@@ -44,6 +44,29 @@ export class ProductsService {
     }
 
     return product
+  }
+
+  async editProduct(id: string, dto: editProductInput, image?: Express.Multer.File) {
+    const product = await this.prismaService.product.findUnique({ where: { id } })
+
+    if (!product) {
+      throw new NotFoundException('Producto no encontrado.')
+    }
+
+    let imageUrl: string | undefined
+
+    if (image) {
+      imageUrl = await this.cloudinaryService.uploadImage(image.buffer)
+    }
+
+    return this.prismaService.product.update({
+      where: { id },
+      data: {
+        ...dto,
+        ...(imageUrl && { image: imageUrl }),
+      },
+      include: { category: true },
+    })
   }
 
   async deleteProduct(id: string) {

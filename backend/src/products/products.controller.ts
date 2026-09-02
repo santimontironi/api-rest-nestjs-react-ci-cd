@@ -1,10 +1,10 @@
-import { Controller, UseGuards, Get, Post, Delete, Param, Body, UseInterceptors, UploadedFile, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common'
+import { Controller, UseGuards, Get, Post, Patch, Delete, Param, Body, UseInterceptors, UploadedFile, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { ProductsService } from './products.service'
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe'
-import { addProductSchema, type addProductType } from '../../../shared/schemas/product.schema'
+import { addProductSchema, type addProductType, type editProductInput } from '../../../shared/schemas/product.schema'
 import { UPLOAD_ALLOWED_IMAGE_TYPES, UPLOAD_MAX_IMAGE_SIZE } from '../utils/consts/upload.consts'
 
 @Controller('products')
@@ -37,6 +37,23 @@ export class ProductsController {
     image: Express.Multer.File,
   ) {
     return this.productsService.addProduct(dto, image)
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  async editProduct(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(addProductSchema)) dto: editProductInput,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({ fileType: UPLOAD_ALLOWED_IMAGE_TYPES })
+        .addMaxSizeValidator({ maxSize: UPLOAD_MAX_IMAGE_SIZE })
+        .build({ errorHttpStatusCode: HttpStatus.BAD_REQUEST, fileIsRequired: false }),
+    )
+    image: Express.Multer.File,
+  ) {
+    return this.productsService.editProduct(id, dto, image)
   }
 
   @Delete(':id')
