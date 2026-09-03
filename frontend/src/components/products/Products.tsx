@@ -1,12 +1,15 @@
 import { useState } from "react"
 import InputProductModal from "./InputProductModal"
+import EditProductModal from "./EditProductModal"
 import ProductsTable from "./ProductsTable"
 import ProductDetail from "./ProductDetail"
 import { useGetProducts } from "../../hooks/productsHooks/useGetProducts"
 import Loader from "../ui/Loader"
+import type { Product } from "../../../../shared/schemas/product.schema"
 
 const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const { data: products, isPending, isError, error } = useGetProducts()
 
@@ -43,6 +46,13 @@ const Products = () => {
 
       {isModalOpen && (
         <InputProductModal onClose={() => setIsModalOpen(false)} />
+      )}
+
+      {editingProduct && (
+        <EditProductModal
+          product={editingProduct}
+          onClose={() => setEditingProduct(null)}
+        />
       )}
 
       {products && products.length > 0 && (
@@ -94,6 +104,7 @@ const Products = () => {
         <ProductsTable
           products={products}
           onProductClick={(product) => setSelectedProductId(product.id)}
+          onEditClick={(product) => setEditingProduct(product)}
         />
       )}
     </div>

@@ -2,7 +2,7 @@ import swal from "../../utils/swal";
 import type { Product } from "../../../../shared/schemas/product.schema";
 import { useDeleteProduct } from "../../hooks/productsHooks/useDeleteProduct";
 
-const ProductsTable = ({ products, onProductClick }: { products: Product[]; onProductClick?: (product: Product) => void; }) => {
+const ProductsTable = ({ products, onProductClick, onEditClick }: { products: Product[]; onProductClick?: (product: Product) => void; onEditClick?: (product: Product) => void; }) => {
   const { mutate: deleteProduct } = useDeleteProduct();
 
   const handleDelete = (product: Product) => {
@@ -55,17 +55,30 @@ const ProductsTable = ({ products, onProductClick }: { products: Product[]; onPr
                   <i className="bi bi-image text-5xl" aria-hidden="true" />
                 </div>
               )}
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  handleDelete(product);
-                }}
-                aria-label={`Eliminar ${product.name}`}
-                className="absolute top-2 right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-tertiary/60 text-secondary outline-none backdrop-blur-sm transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50"
-              >
-                <i className="bi bi-trash3 text-sm" aria-hidden="true" />
-              </button>
+              <div className="absolute top-2 right-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onEditClick?.(product);
+                  }}
+                  aria-label={`Editar ${product.name}`}
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-tertiary/60 text-secondary outline-none backdrop-blur-sm transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                >
+                  <i className="bi bi-pencil text-sm" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleDelete(product);
+                  }}
+                  aria-label={`Eliminar ${product.name}`}
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-tertiary/60 text-secondary outline-none backdrop-blur-sm transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                >
+                  <i className="bi bi-trash3 text-sm" aria-hidden="true" />
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-1 flex-col gap-3 p-5">
@@ -98,44 +111,47 @@ const ProductsTable = ({ products, onProductClick }: { products: Product[]; onPr
 
       <div className="hidden overflow-hidden rounded-2xl border border-tertiary/10 bg-secondary shadow-[0_10px_30px_-15px] shadow-tertiary/30 xl:block">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-160 border-collapse text-left">
+          <table className="w-full min-w-160 table-fixed border-collapse text-left">
             <thead>
               <tr className="border-b border-tertiary/10 bg-tertiary/5">
-                <th scope="col" className="w-16 px-4 py-3 md:px-6">
+                <th scope="col" className="w-[6%] px-4 py-3 md:px-6">
                   <span className="sr-only">Imagen</span>
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
+                  className="w-[26%] px-4 py-3 text-xs font-semibold text-primary md:px-6"
                 >
                   Producto
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
+                  className="w-[14%] px-4 py-3 text-xs font-semibold text-primary md:px-6"
                 >
                   Categoría
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
+                  className="w-[10%] px-4 py-3 text-xs font-semibold text-primary md:px-6"
                 >
                   Stock
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-xs font-semibold text-primary md:px-6"
+                  className="w-[14%] px-4 py-3 text-xs font-semibold text-primary md:px-6"
                 >
                   Creado
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-right text-xs font-semibold text-primary md:px-6"
+                  className="w-[14%] px-4 py-3 text-right text-xs font-semibold text-primary md:px-6"
                 >
                   Precio
                 </th>
-                <th scope="col" className="w-14 px-4 py-3 md:px-6">
-                  <span className="sr-only">Acciones</span>
+                <th
+                  scope="col"
+                  className="w-[16%] px-4 py-3 text-right text-xs font-semibold text-primary md:px-6"
+                >
+                  Acciones
                 </th>
               </tr>
             </thead>
@@ -162,7 +178,7 @@ const ProductsTable = ({ products, onProductClick }: { products: Product[]; onPr
                     </div>
                   </td>
                   <td className="px-4 py-3 md:px-6">
-                    <div className="flex max-w-64 flex-col gap-0.5 xl:max-w-xs">
+                    <div className="flex w-full flex-col gap-0.5">
                       <p className="truncate text-sm font-semibold text-tertiary transition-colors duration-150 group-hover:text-secondary md:text-base">
                         {product.name}
                       </p>
@@ -171,7 +187,7 @@ const ProductsTable = ({ products, onProductClick }: { products: Product[]; onPr
                       </p>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70 md:px-6">
+                  <td className="truncate px-4 py-3 text-sm text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70 md:px-6">
                     {product.category.name}
                   </td>
                   <td className="px-4 py-3 text-sm font-medium text-tertiary transition-colors duration-150 group-hover:text-secondary md:px-6">
@@ -183,18 +199,31 @@ const ProductsTable = ({ products, onProductClick }: { products: Product[]; onPr
                   <td className="px-4 py-3 text-right text-sm font-bold text-primary transition-colors duration-150 group-hover:text-secondary md:px-6 md:text-base">
                     ${product.price.toFixed(2)}
                   </td>
-                  <td className="px-4 py-3 text-right md:px-6">
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleDelete(product);
-                      }}
-                      aria-label={`Eliminar ${product.name}`}
-                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 group-hover:text-secondary hover:bg-secondary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
-                    >
-                      <i className="bi bi-trash3 text-base" aria-hidden="true" />
-                    </button>
+                  <td className="px-4 py-3 md:px-6">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onEditClick?.(product);
+                        }}
+                        aria-label={`Editar ${product.name}`}
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 group-hover:text-secondary hover:bg-secondary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                      >
+                        <i className="bi bi-pencil text-base" aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDelete(product);
+                        }}
+                        aria-label={`Eliminar ${product.name}`}
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 group-hover:text-secondary hover:bg-secondary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                      >
+                        <i className="bi bi-trash3 text-base" aria-hidden="true" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
