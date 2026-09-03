@@ -38,3 +38,4 @@ export type Product = z.infer<typeof productSchema>;
 export type addProductType = z.infer<typeof addProductSchema>;
 export type addProductFormInput = z.input<typeof addProductSchema>;
 export type CategoryWithProducts = z.infer<typeof categoryWithProductsSchema>;
+export type editProductInput = z.infer<typeof addProductSchema>
