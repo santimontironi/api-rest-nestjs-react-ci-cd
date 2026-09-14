@@ -39,17 +39,18 @@ model Category {
 }
 
 model Product {
-  id          String     @id @default(uuid())
-  image       String?
-  name        String
-  description String
-  stock       Int
-  price       Float
-  categoryId  String
-  category    Category   @relation(fields: [categoryId], references: [id])
-  saleItems   SaleItem[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id            String     @id @default(uuid())
+  image         String?
+  imagePublicId String?
+  name          String
+  description   String
+  stock         Int
+  price         Float
+  categoryId    String
+  category      Category   @relation(fields: [categoryId], references: [id])
+  saleItems     SaleItem[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model Sale {

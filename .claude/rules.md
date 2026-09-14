@@ -52,8 +52,8 @@ legible, prolijo, mantenible y escalable.
 
 ## Backend (NestJS)
 
-- **Arquitectura modular**: un módulo por dominio (`auth`, `products`, `users`, `mail`,
-  `cloudinary`, `prisma`, `redis`). Cada módulo con su `module`, `controller`, `service` y
+- **Arquitectura modular**: un módulo por dominio (`auth`, `products`, `categories`, `customers`,
+  `sales`, `mail`, `cloudinary`, `prisma`). Cada módulo con su `module`, `controller`, `service` y
   carpeta `dto/`.
 - **Los controllers no tienen lógica de negocio.** Reciben, delegan al service y devuelven.
 - **Prisma solo se usa dentro de los services**, nunca en un controller.
@@ -118,6 +118,12 @@ legible, prolijo, mantenible y escalable.
   La regla aplica al contenido fijo escrito por nosotros, no a las colecciones.
 - **Tailwind v4** para todos los estilos. Sin CSS suelto ni estilos inline salvo valores dinámicos.
 - Estados de carga y error siempre visibles: nada de pantallas en blanco ni fallos silenciosos.
+- **Modales de alta/edición: el estado que controla si están abiertos vive en la página/componente
+  de nivel de entidad (`Products`, `Categories`, ...), nunca en la tabla ni en el listado.** El
+  listado (`ProductsTable`, ...) es "tonto": solo expone callbacks (`onEditClick`, ...) que la
+  página pasa como props; no importa el hook de la mutation ni sabe que existe un modal. Mismo
+  criterio para alta (`isModalOpen`) y edición (`editingProduct`): ver `Products.tsx` +
+  `InputProductModal` + `EditProductModal` + `ProductsTable`.
 
 ## Estructura de carpetas
 
@@ -127,12 +133,14 @@ shared/
 
 backend/src/
   auth/          register, login, logout, verificación de email, guards, estrategia jwt
-  users/
   products/
+  categories/
+  customers/
+  sales/         módulo scaffoldeado (module/controller/service vacíos), lógica de venta pendiente
   mail/          MailService (nodemailer) + plantillas
   cloudinary/    CloudinaryService (subida de imágenes)
   prisma/
-  redis/
+  config/        config de servicios externos (cloudinary.config.ts, mail.config.ts)
   common/
     pipes/       pipes de Nest transversales (ZodValidationPipe, ...)
   utils/

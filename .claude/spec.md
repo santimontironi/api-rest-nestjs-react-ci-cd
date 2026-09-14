@@ -144,6 +144,13 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 
 ## Autenticación
 
+> **Estado actual**: implementado `register`, `login`, `logout`, `forgot-password`,
+> `reset-password/:token` y `me`. **No implementados todavía**: la confirmación de cuenta por
+> email (`User` no tiene campo de verificación en `schema.prisma`, y `register` no envía mail ni
+> bloquea el login de una cuenta sin confirmar) ni `PATCH /auth/change-password` (no existe en
+> `auth.controller.ts`; `ChangePassword.tsx` es un placeholder). Estas dos secciones documentan
+> el comportamiento objetivo.
+
 Todas las rutas del backend van prefijadas con **`/api`** (`app.setGlobalPrefix('api')` en
 `main.ts`). Las rutas mencionadas en esta spec se listan sin ese prefijo por brevedad: por
 ejemplo, `POST /auth/register` corresponde en la práctica a `POST /api/auth/register`.
@@ -254,6 +261,10 @@ sistema; solo se cargan los clientes **frecuentes**, no todos los que compran.
 
 ## Endpoints de ventas
 
+> **Estado actual**: el módulo `sales` está scaffoldeado (`module`/`controller`/`service` vacíos)
+> pero la lógica descripta abajo todavía no está implementada, igual que `Sales.tsx` en el
+> frontend. Esta sección documenta el comportamiento objetivo, no el actual.
+
 Todos requieren autenticación.
 
 | Método | Ruta | Descripción |
@@ -280,40 +291,47 @@ Todos requieren autenticación.
 
 ## Reportes y dashboard
 
+> **Estado actual**: no implementado todavía. No existe módulo `reports` en el backend y
+> `Dashboard.tsx` en el frontend es un placeholder. Esta sección documenta el comportamiento
+> objetivo, no el actual.
+
 Sección de solo lectura sobre los datos de ventas y catálogo, pensada para que el negocio vea
-su actividad de un vistazo.
+su actividad de un vistazo. **No hay un selector general de mes/año que dispare actualizaciones
+en tiempo real de todo el dashboard**: cada reporte se calcula sobre todo el histórico. La única
+excepción es el gráfico de ventas por mes, que trae su propio **selector de año** (independiente
+del resto) para elegir qué año mostrar.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/reports/sales` | Ventas agregadas, filtrables por `month` y/o `year` |
-| `GET` | `/reports/sales-by-category` | Ventas agrupadas por categoría de producto, en el rango filtrado |
-| `GET` | `/reports/sales-trend` | Ventas agrupadas por período (`day` o `month`, vía query param `granularity`), para ver evolución en el tiempo |
-| `GET` | `/reports/top-products` | Top N productos más vendidos en el rango filtrado, ordenable por cantidad o por monto (`orderBy`), con `limit` |
-| `GET` | `/reports/top-customers` | Top N clientes con más compras en el rango filtrado, ordenable por cantidad de ventas o por monto (`orderBy`), con `limit` |
+| `GET` | `/reports/sales-trend` | Total de ventas agregado por mes, filtrable por `year` |
+| `GET` | `/reports/top-products` | Top 10 productos más vendidos, histórico, ordenado por cantidad |
+| `GET` | `/reports/sales-by-category` | Categorías más vendidas históricas, en % sobre cantidad de ventas (no sobre monto) |
+| `GET` | `/reports/top-customers` | Top 10 clientes con más compras, histórico, ordenado por cantidad de compras |
 | `GET` | `/reports/stock-by-category` | Stock actual agrupado por categoría |
 | `GET` | `/reports/low-stock` | Productos con stock por debajo de un umbral (`threshold`) |
-| `GET` | `/reports/products-by-category` | Cantidad de productos por categoría (foto fija del catálogo, no depende del rango de fechas) |
 
-- Los filtros de fecha (`month`, `year`) son query params opcionales; sin filtro, se devuelve el
-  total histórico.
-- El frontend consume estos endpoints para armar un **dashboard** con: selector de mes/año,
-  total de ventas del período, y los siguientes gráficos:
-  - **Barras** — comparación entre categorías o evolución en el tiempo:
-    - Ventas por categoría (`/reports/sales-by-category`)
-    - Ventas por mes/día, últimos 6-12 meses o últimos 30 días (`/reports/sales-trend`)
-    - Top N productos más vendidos, por cantidad o por monto (`/reports/top-products`)
-    - Top N clientes con más compras, por cantidad o por monto (`/reports/top-customers`)
-    - Stock actual por categoría o productos con stock bajo (`/reports/stock-by-category`, `/reports/low-stock`)
-  - **Torta/dona** — relación parte-todo con pocas categorías, no series temporales:
-    - Cantidad de productos por categoría (`/reports/products-by-category`)
-    - Participación % de cada categoría sobre el total vendido, misma data que
-      `/reports/sales-by-category` pero expresada como porcentaje en vez de monto absoluto
-- `/reports/sales`, `/reports/sales-by-category`, `/reports/sales-trend` y `/reports/top-products`
-  agrupan usando `productName`/`categoryName`/`unitPrice` de `SaleItem` (snapshot), no hacen join
-  a `Product`/`Category`: siguen siendo precisos aunque el producto o la categoría se hayan
-  editado o eliminado después de la venta. `/reports/stock-by-category`, `/reports/low-stock` y
-  `/reports/products-by-category` sí reflejan el catálogo **actual** (`Product`/`Category`),
-  porque son fotos del estado presente, no del histórico de ventas.
+El frontend consume estos endpoints para armar un **dashboard** con:
+
+- **Barras**:
+  - Ventas por mes (`/reports/sales-trend`): las 12 barras (una por mes) del año elegido en su
+    selector de año.
+  - Stock actual por categoría (`/reports/stock-by-category`).
+- **Torta/dona**:
+  - Categorías más vendidas históricas (`/reports/sales-by-category`): cantidad de ventas por
+    categoría, expresada en % sobre el total histórico (no sobre monto).
+- **Listados** (no son gráfico):
+  - Top 10 productos más vendidos (`/reports/top-products`).
+  - Top 10 clientes con más compras (`/reports/top-customers`).
+- **Alertas / mensajes** (no es gráfico):
+  - Stock bajo (`/reports/low-stock`): listado de mensajes, color **rojo** si el stock es
+    **≤ 5 unidades**, color **amarillo** si es **≤ 10 unidades**.
+
+- `/reports/sales-trend`, `/reports/sales-by-category` y `/reports/top-products` agrupan usando
+  `productName`/`categoryName`/`unitPrice` de `SaleItem` (snapshot), no hacen join a
+  `Product`/`Category`: siguen siendo precisos aunque el producto o la categoría se hayan editado
+  o eliminado después de la venta. `/reports/stock-by-category` y `/reports/low-stock` sí reflejan
+  el catálogo **actual** (`Product`/`Category`), porque son fotos del estado presente, no del
+  histórico de ventas.
 - `/reports/top-customers` agrupa por `customerId`, usando `customerName`/`customerSurname` de
   `Sale` (snapshot) para mostrar el nombre; las ventas sin `customerId` (sin cliente asociado) no
   entran en este reporte.
@@ -321,6 +339,12 @@ su actividad de un vistazo.
   productos (ver sección Redis).
 
 ## Imágenes de productos
+
+> **Estado actual**: la subida a Cloudinary funciona, pero la obligatoriedad y las validaciones
+> de tipo/tamaño descriptas abajo todavía no están implementadas. `Product.image` es opcional en
+> `schema.prisma` (`String?`), `addProductSchema` no valida el archivo, y el input de imagen en
+> `InputProductModal`/`EditProductModal` no tiene `required` ni chequeo de tamaño (solo el atributo
+> `accept`, que no es una validación real). Esta sección documenta el comportamiento objetivo.
 
 - El archivo se recibe con **Multer** en `memoryStorage` (buffer, sin escribir a disco) y se
   sube a **Cloudinary** desde un módulo `cloudinary` del backend. En `Product.image` se guarda
@@ -335,6 +359,9 @@ su actividad de un vistazo.
   tamaño) antes de enviarlo, con las mismas reglas que el backend.
 
 ## Importación de productos por Excel
+
+> **Estado actual**: no implementado todavía (`xlsx` no está instalado, ver
+> `Pendiente de instalar`). No existe la ruta `POST /products/import`.
 
 Permite dar de alta muchos productos de una sola vez a partir de una planilla, en vez de
 cargarlos uno por uno desde el formulario.
@@ -383,6 +410,9 @@ responde `429`. Implementado con `@nestjs/throttler`; los valores están en
 `backend/src/utils/consts/auth.consts.ts`.
 
 ## Redis
+
+> **Estado actual**: no implementado todavía (ver `Pendiente de instalar`). No hay módulo `redis`
+> en el backend.
 
 Se usa como caché de lecturas frecuentes (listado y detalle de productos). Toda mutación sobre
 un producto invalida las claves afectadas.
@@ -449,8 +479,9 @@ Ya incorporados: Prisma (`@prisma/client`, `@prisma/adapter-pg`, `pg`), Husky
 (`nodemailer`, `@types/nodemailer`), la carga de variables de entorno (`@nestjs/config`,
 `dotenv`), JWT (`@nestjs/jwt`), bcrypt (`bcrypt`, `@types/bcrypt`), la validación de DTOs
 (`class-validator`, `class-transformer`), `cookie-parser` (`cookie-parser`,
-`@types/cookie-parser`) y rate limiting (`@nestjs/throttler`).
+`@types/cookie-parser`), rate limiting (`@nestjs/throttler`), Multer
+(`@nestjs/platform-express`, `@types/multer`), Cloudinary (`cloudinary`) y TanStack Query
+(`@tanstack/react-query`).
 
-Todavía faltan: Redis,
-multer (`@types/multer`), cloudinary, TanStack Query y `xlsx` (parseo del Excel de importación
-de productos). Actualizar esta sección a medida que se agreguen.
+Todavía faltan: Redis y `xlsx` (parseo del Excel de importación de productos). Actualizar esta
+sección a medida que se agreguen.

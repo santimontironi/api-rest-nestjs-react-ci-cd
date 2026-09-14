@@ -6,7 +6,7 @@ import { addCategorySchema, type AddCategoryInput } from '../../../shared/schema
 
 @Controller('categories')
 export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(private readonly categoriesService: CategoriesService) { }
 
   @Get()
   @UseGuards(JwtAuthGuard)

@@ -18,16 +18,16 @@ export class ProductsService {
   }
 
   async addProduct(dto: addProductType, image?: Express.Multer.File) {
-    let imageUrl: string | undefined
+    let uploadedImage: { url: string; publicId: string } | undefined
 
     if (image) {
-      imageUrl = await this.cloudinaryService.uploadImage(image.buffer)
+      uploadedImage = await this.cloudinaryService.uploadImage(image.buffer)
     }
 
     return this.prismaService.product.create({
       data: {
         ...dto,
-        ...(imageUrl && { image: imageUrl }),
+        ...(uploadedImage && { image: uploadedImage.url, imagePublicId: uploadedImage.publicId }),
       },
       include: { category: true },
     })
@@ -53,20 +53,26 @@ export class ProductsService {
       throw new NotFoundException('Producto no encontrado.')
     }
 
-    let imageUrl: string | undefined
+    let uploadedImage: { url: string; publicId: string } | undefined
 
     if (image) {
-      imageUrl = await this.cloudinaryService.uploadImage(image.buffer)
+      uploadedImage = await this.cloudinaryService.uploadImage(image.buffer)
     }
 
-    return this.prismaService.product.update({
+    const updatedProduct = await this.prismaService.product.update({
       where: { id },
       data: {
         ...dto,
-        ...(imageUrl && { image: imageUrl }),
+        ...(uploadedImage && { image: uploadedImage.url, imagePublicId: uploadedImage.publicId }),
       },
       include: { category: true },
     })
+
+    if (uploadedImage && product.imagePublicId) {
+      await this.cloudinaryService.deleteImage(product.imagePublicId)
+    }
+
+    return updatedProduct
   }
 
   async deleteProduct(id: string) {
@@ -76,6 +82,12 @@ export class ProductsService {
       throw new NotFoundException('Producto no encontrado.')
     }
 
-    return this.prismaService.product.delete({ where: { id }, include: { category: true } })
+    const deletedProduct = await this.prismaService.product.delete({ where: { id }, include: { category: true } })
+
+    if (product.imagePublicId) {
+      await this.cloudinaryService.deleteImage(product.imagePublicId)
+    }
+
+    return deletedProduct
   }
 }

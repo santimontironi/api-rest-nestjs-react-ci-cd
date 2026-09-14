@@ -1,10 +1,14 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service'
+import { CloudinaryService } from '../cloudinary/cloudinary.service'
 import type { AddCategoryInput } from '../../../shared/schemas/category.schema'
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) { }
 
   async getCategories() {
     return this.prisma.category.findMany({
@@ -40,13 +44,22 @@ export class CategoriesService {
   }
 
   async deleteCategory(id: string) {
-    const category = await this.prisma.category.findUnique({ where: { id } })
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+      include: { products: true },
+    })
 
     if (!category) {
       throw new NotFoundException('Categoría no encontrada.')
     }
 
     const [, deletedCategory] = await this.prisma.$transaction([this.prisma.product.deleteMany({ where: { categoryId: id } }), this.prisma.category.delete({ where: { id } })])
+
+    for (const product of category.products) {
+      if (product.imagePublicId) {
+        await this.cloudinaryService.deleteImage(product.imagePublicId)
+      }
+    }
 
     return deletedCategory
   }

@@ -6,6 +6,78 @@
     --color-tertiary: #000812;
 }
 
-body{
+body {
     font-family: "Nata Sans", sans-serif;
+}
+
+.swal-mui-popup {
+    border-radius: 20px !important;
+    box-shadow:
+        0px 11px 15px -7px rgba(0, 0, 0, 0.2),
+        0px 24px 38px 3px rgba(0, 0, 0, 0.14),
+        0px 9px 46px 8px rgba(0, 0, 0, 0.12) !important;
+    font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.swal-mui-title {
+    font-size: 1.25rem !important;
+    font-weight: 500 !important;
+    line-height: 1.6 !important;
+}
+
+.swal-mui-html {
+    font-size: 0.875rem !important;
+    color: color-mix(in srgb, var(--color-tertiary) 70%, transparent) !important;
+}
+
+.swal-mui-actions {
+    gap: 0.5rem;
+}
+
+.swal-mui-confirm,
+.swal-mui-cancel {
+    border-radius: 4px !important;
+    min-width: 64px;
+    padding: 6px 16px !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    line-height: 1.75 !important;
+    letter-spacing: 0.02857em !important;
+    text-transform: uppercase !important;
+    cursor: pointer !important;
+    transition:
+        background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 150ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.swal-mui-confirm {
+    background-color: var(--color-primary) !important;
+    color: var(--color-secondary) !important;
+    border: 1px solid var(--color-primary) !important;
+    box-shadow:
+        0px 3px 1px -2px rgba(0, 0, 0, 0.2),
+        0px 2px 2px 0px rgba(0, 0, 0, 0.14),
+        0px 1px 5px 0px rgba(0, 0, 0, 0.12) !important;
+}
+
+.swal-mui-confirm:hover {
+    background-color: color-mix(in srgb, var(--color-primary) 85%, black) !important;
+    border-color: color-mix(in srgb, var(--color-primary) 85%, black) !important;
+    box-shadow:
+        0px 2px 4px -1px rgba(0, 0, 0, 0.2),
+        0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+        0px 1px 10px 0px rgba(0, 0, 0, 0.12) !important;
+}
+
+.swal-mui-cancel {
+    background-color: transparent !important;
+    color: var(--color-tertiary) !important;
+    border: 1px solid color-mix(in srgb, var(--color-tertiary) 35%, transparent) !important;
+    box-shadow: none !important;
+}
+
+.swal-mui-cancel:hover {
+    background-color: color-mix(in srgb, var(--color-tertiary) 8%, transparent) !important;
+    border-color: color-mix(in srgb, var(--color-tertiary) 55%, transparent) !important;
 }
