@@ -19,8 +19,8 @@ const menuItems: { key: sidebarItems; label: string; icon: string }[] = [
 
 const navItemClasses = (active: boolean) =>
     `flex h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 text-sm font-medium outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-primary/50 ${active
-        ? "bg-primary text-secondary shadow-[0_10px_25px_-8px] shadow-primary/50"
-        : "text-secondary/50 hover:bg-secondary/5 hover:text-secondary"
+        ? "bg-primary text-tertiary shadow-[0_10px_25px_-8px] shadow-primary/50"
+        : "text-tertiary/50 hover:bg-tertiary/5 hover:text-tertiary"
     }`;
 
 const Sidebar = ({ activeItem, setActiveItem }: SidebarProps) => {
@@ -49,20 +49,20 @@ const Sidebar = ({ activeItem, setActiveItem }: SidebarProps) => {
 
     return (
         <>
-            <div className="sticky top-0 z-30 flex items-center justify-between bg-tertiary px-4 py-3 md:hidden">
+            <div className="sticky top-0 z-30 flex items-center justify-between bg-secondary px-4 py-3 md:hidden">
                 <div className="flex items-center gap-2.5">
                     <img
-                        src="/images/logo.png"
+                        src="/images/logo.jpg"
                         alt="Logo"
                         className="h-8 w-8 rounded-lg object-contain"
                     />
-                    <span className="text-sm font-bold text-secondary">Catálogo</span>
+                    <span className="text-sm font-bold text-tertiary">Vortex PC</span>
                 </div>
                 <button
                     type="button"
                     onClick={() => setIsOpen(true)}
                     aria-label="Abrir menú"
-                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-secondary outline-none transition-colors duration-150 hover:bg-secondary/10 focus-visible:ring-2 focus-visible:ring-primary/50"
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-tertiary outline-none transition-colors duration-150 hover:bg-tertiary/10 focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
                     <i className="bi bi-list text-xl" aria-hidden="true" />
                 </button>
@@ -72,26 +72,26 @@ const Sidebar = ({ activeItem, setActiveItem }: SidebarProps) => {
                 <div
                     onClick={() => setIsOpen(false)}
                     aria-hidden="true"
-                    className="fixed inset-0 z-40 bg-tertiary/70 backdrop-blur-sm transition-opacity duration-300 md:hidden"
+                    className="fixed inset-0 z-40 bg-secondary/70 backdrop-blur-sm transition-opacity duration-300 md:hidden"
                 />
             )}
 
             <aside
-                className={`fixed inset-x-0 top-0 z-50 flex max-h-screen shrink-0 flex-col gap-8 overflow-y-auto bg-tertiary px-4 py-6 shadow-2xl transition-transform duration-300 ease-out ${isOpen ? "translate-y-0" : "-translate-y-full"
-                    } md:fixed md:inset-y-0 md:left-0 md:top-0 md:w-64 md:translate-y-0 md:gap-10 md:px-5 md:py-8 md:shadow-none xl:w-72 xl:px-6 2xl:w-80`}
+                className={`fixed inset-x-0 top-0 z-50 flex max-h-screen shrink-0 flex-col gap-8 overflow-y-auto bg-secondary px-4 py-6 shadow-2xl transition-transform duration-300 ease-out ${isOpen ? "translate-y-0" : "-translate-y-full"
+                    } md:fixed md:inset-y-0 md:left-0 md:top-0 md:w-64 md:translate-y-0 md:gap-10 md:border-r-2 md:border-tertiary/25 md:px-5 md:py-8 md:shadow-none xl:w-72 xl:px-6 2xl:w-80`}
             >
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                         <img
-                            src="/images/logo.png"
+                            src="/images/logo.jpg"
                             alt="Logo"
                             className="h-10 w-10 rounded-lg object-contain xl:h-11 xl:w-11"
                         />
                         <div className="min-w-0">
-                            <p className="truncate text-base font-bold text-secondary xl:text-lg">
-                                Catálogo
+                            <p className="truncate text-base font-bold text-tertiary xl:text-lg">
+                                Vortex PC
                             </p>
-                            <p className="truncate text-xs text-secondary/50">
+                            <p className="truncate text-xs text-tertiary/50">
                                 Tu gestor de productos
                             </p>
                         </div>
@@ -100,7 +100,7 @@ const Sidebar = ({ activeItem, setActiveItem }: SidebarProps) => {
                         type="button"
                         onClick={() => setIsOpen(false)}
                         aria-label="Cerrar menú"
-                        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-secondary/60 outline-none transition-colors duration-150 hover:bg-secondary/10 hover:text-secondary focus-visible:ring-2 focus-visible:ring-primary/50 md:hidden"
+                        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-tertiary/60 outline-none transition-colors duration-150 hover:bg-tertiary/10 hover:text-tertiary focus-visible:ring-2 focus-visible:ring-primary/50 md:hidden"
                     >
                         <i className="bi bi-x-lg text-lg" aria-hidden="true" />
                     </button>
@@ -125,7 +125,7 @@ const Sidebar = ({ activeItem, setActiveItem }: SidebarProps) => {
                         </ul>
                     </div>
 
-                    <div className="mt-auto flex flex-col gap-1 border-t border-secondary/15 pt-4">
+                    <div className="mt-auto flex flex-col gap-1 border-t border-tertiary/15 pt-4">
                         <button
                             type="button"
                             onClick={() => selectItem("settings")}
@@ -138,21 +138,21 @@ const Sidebar = ({ activeItem, setActiveItem }: SidebarProps) => {
                     </div>
                 </nav>
 
-                <div className="flex items-center gap-3 border-t border-secondary/15 pt-5">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-secondary">
+                <div className="flex items-center gap-3 border-t border-tertiary/15 pt-5">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-tertiary">
                         {initials || "?"}
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-secondary">
+                        <p className="truncate text-sm font-medium text-tertiary">
                             {fullName || "Usuario"}
                         </p>
-                        <p className="text-xs text-secondary/50">Administrador</p>
+                        <p className="text-xs text-tertiary/50">Administrador</p>
                     </div>
                     <button
                         type="button"
                         aria-label="Cerrar sesión"
                         title="Cerrar sesión"
-                        className="flex cursor-pointer h-9 w-9 shrink-0 items-center justify-center rounded-lg text-secondary/50 outline-none transition-colors duration-150 hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                        className="flex cursor-pointer h-9 w-9 shrink-0 items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
                         onClick={handleLogout}
                     >
                         <i className="bi bi-box-arrow-right text-base" aria-hidden="true" />

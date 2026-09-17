@@ -63,7 +63,7 @@ const ProductsTable = ({ products, onProductClick, onEditClick }: { products: Pr
                     onEditClick?.(product);
                   }}
                   aria-label={`Editar ${product.name}`}
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-tertiary/60 text-secondary outline-none backdrop-blur-sm transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-tertiary/60 text-secondary outline-none backdrop-blur-sm transition-colors duration-150 hover:bg-linear-to-r hover:from-primary hover:to-primary-end focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
                   <i className="bi bi-pencil text-sm" aria-hidden="true" />
                 </button>
@@ -74,7 +74,7 @@ const ProductsTable = ({ products, onProductClick, onEditClick }: { products: Pr
                     handleDelete(product);
                   }}
                   aria-label={`Eliminar ${product.name}`}
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-tertiary/60 text-secondary outline-none backdrop-blur-sm transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-tertiary/60 text-secondary outline-none backdrop-blur-sm transition-colors duration-150 hover:bg-linear-to-r hover:from-primary hover:to-primary-end focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
                   <i className="bi bi-trash3 text-sm" aria-hidden="true" />
                 </button>
@@ -160,7 +160,7 @@ const ProductsTable = ({ products, onProductClick, onEditClick }: { products: Pr
                 <tr
                   key={`row-${product.id}`}
                   onClick={() => onProductClick?.(product)}
-                  className="group cursor-pointer transition-colors duration-150 hover:bg-primary"
+                  className="group cursor-pointer transition-colors duration-150 hover:bg-linear-to-r hover:from-primary hover:to-primary-end"
                 >
                   <td className="px-4 py-3 md:px-6">
                     <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-tertiary/5 transition-colors duration-150 group-hover:bg-secondary/10 md:h-12 md:w-12">

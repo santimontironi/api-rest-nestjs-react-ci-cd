@@ -95,14 +95,14 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 | `name` | `String` | `@unique` |
 | `products` | `Product[]` | Lado inverso de la relación con `Product` |
 | `createdAt` | `DateTime` | `@default(now())` |
-| `updatedAt` | `DateTime` | `@updatedAt` |
 
 ### Product
 
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | `String` | PK, `@default(uuid())` |
-| `image` | `String` | URL de la imagen en Cloudinary. Obligatoria |
+| `image` | `String?` | URL de la imagen en Cloudinary. `null` si el producto no tiene imagen propia |
+| `imagePublicId` | `String?` | `public_id` de Cloudinary de la imagen actual. Se usa para borrarla del storage cuando se reemplaza o cuando se borra el producto. `null` si `image` no vino de una subida propia (por ejemplo, la importación por Excel con URL externa, ver esa sección) |
 | `name` | `String` | |
 | `description` | `String` | |
 | `stock` | `Int` | No negativo |
@@ -119,6 +119,7 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 |---|---|---|
 | `id` | `String` | PK, `@default(uuid())` |
 | `total` | `Float` | Suma de `quantity * unitPrice` de todas sus líneas |
+| `paymentMethod` | `PaymentMethod` | Enum (`CASH` \| `TRANSFER`), obligatorio |
 | `customerId` | `String?` | FK a `Customer.id`, opcional. `onDelete: SetNull`: si el cliente se borra, la venta queda sin cliente asociado, sin perder el resto de su información |
 | `customer` | `Customer?` | `@relation(fields: [customerId], references: [id])` |
 | `customerName` | `String?` | Nombre del cliente al momento de la venta (snapshot, no cambia si el cliente se renombra o se borra después). `null` si la venta no tuvo cliente asociado |
@@ -215,9 +216,14 @@ Todos requieren autenticación y operan sobre el catálogo compartido.
 
 - Un `id` inexistente responde `404`.
 - `GET /products` responde `200` con un array vacío si el catálogo está vacío.
+- `PATCH` reemplaza la imagen solo si viene un archivo nuevo; si no viene, conserva `image` e
+  `imagePublicId` actuales. Cuando sí viene, primero sube la nueva imagen a Cloudinary y recién
+  después borra de Cloudinary la que tenía antes (usando `imagePublicId`), para no quedarse sin
+  imagen si la subida falla.
 - `DELETE` es un borrado real, no soft delete: es seguro porque `SaleItem` guarda su propio
   snapshot (`productName`, `categoryName`, `unitPrice`) y no depende de que el producto siga
-  existiendo.
+  existiendo. Además de borrar el registro, si el producto tenía `imagePublicId` borra también su
+  imagen de Cloudinary.
 
 ## Endpoints de categorías
 
@@ -271,8 +277,9 @@ Todos requieren autenticación.
 |---|---|---|
 | `GET` | `/sales` | Lista las ventas (soporta filtros por rango de fechas y por `customerId`) |
 | `GET` | `/sales/:id` | Detalle de una venta con sus líneas |
-| `POST` | `/sales` | Registra una venta con una o más líneas (`productId` + `quantity`) y, opcionalmente, un `customerId` |
+| `POST` | `/sales` | Registra una venta con una o más líneas (`productId` + `quantity`), un `paymentMethod` (`CASH` \| `TRANSFER`) y, opcionalmente, un `customerId` |
 
+- El `paymentMethod` de una venta es **obligatorio**: `CASH` (efectivo) o `TRANSFER` (transferencia).
 - El `customerId` de una venta es **opcional**: solo se asocia cuando el comprador es un cliente
   frecuente ya dado de alta. Cuando se envía, `customerName`, `customerSurname` y `customerPhone`
   se toman del cliente en ese momento y quedan como snapshot (no cambian si el cliente actualiza
@@ -340,21 +347,29 @@ El frontend consume estos endpoints para armar un **dashboard** con:
 
 ## Imágenes de productos
 
-> **Estado actual**: la subida a Cloudinary funciona, pero la obligatoriedad y las validaciones
-> de tipo/tamaño descriptas abajo todavía no están implementadas. `Product.image` es opcional en
-> `schema.prisma` (`String?`), `addProductSchema` no valida el archivo, y el input de imagen en
-> `InputProductModal`/`EditProductModal` no tiene `required` ni chequeo de tamaño (solo el atributo
-> `accept`, que no es una validación real). Esta sección documenta el comportamiento objetivo.
+> **Estado actual**: la subida a Cloudinary y la validación de tipo/tamaño en el **backend**
+> (`ParseFilePipeBuilder` + `upload.consts.ts`) ya funcionan. Lo que falta: la obligatoriedad de
+> imagen al crear no está aplicada (`Product.image` es opcional en `schema.prisma`, `String?`, y el
+> endpoint de creación marca el archivo como `fileIsRequired: false`), y no hay validación en el
+> **frontend**: `addProductSchema` no valida el archivo (se maneja aparte con `useState`, no pasa
+> por Zod) y el input de imagen en `InputProductModal`/`EditProductModal` no tiene `required` ni
+> chequeo de tamaño (solo el atributo `accept`, que no es una validación real). Esta sección
+> documenta el comportamiento objetivo en los puntos que faltan.
 
 - El archivo se recibe con **Multer** en `memoryStorage` (buffer, sin escribir a disco) y se
-  sube a **Cloudinary** desde un módulo `cloudinary` del backend. En `Product.image` se guarda
-  la URL segura que devuelve Cloudinary, nunca el archivo.
+  sube a **Cloudinary** desde un módulo `cloudinary` del backend (`CloudinaryService`). En
+  `Product.image` se guarda la URL segura que devuelve Cloudinary y en `Product.imagePublicId` su
+  `public_id`, nunca el archivo.
 - Validaciones del archivo en el backend: tipo `image/jpeg`, `image/png` o `image/webp`, y un
   tamaño máximo de **2 MB**. Si no cumple, responde `400`.
 - **Crear** exige imagen. **Actualizar** la acepta como opcional: si no viene, se conserva la
   que ya estaba.
-- Si la subida a Cloudinary falla, **no se crea el producto**: primero se sube la imagen y solo
-  con la URL en mano se escribe en la base.
+- Si la subida a Cloudinary falla, **no se crea ni se actualiza el producto**: primero se sube la
+  imagen y solo con la URL y el `public_id` en mano se escribe en la base.
+- `imagePublicId` es lo que permite borrar la imagen vieja de Cloudinary cuando se reemplaza
+  (`editProduct`) o cuando se borra el producto (`deleteProduct`), evitando dejar archivos
+  huérfanos en el storage. El borrado en Cloudinary corre después de aplicar el cambio en la base,
+  nunca antes: si Cloudinary falla, el producto ya quedó creado/actualizado/borrado igual.
 - En el frontend el formulario envía `FormData`. El esquema de Zod valida el archivo (tipo y
   tamaño) antes de enviarlo, con las mismas reglas que el backend.
 

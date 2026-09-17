@@ -102,7 +102,7 @@ const CustomersTable = ({ customers }: { customers: Customer[] }) => {
               {customers.map((customer) => (
                 <tr
                   key={`row-${customer.id}`}
-                  className="group transition-colors duration-150 hover:bg-primary"
+                  className="group transition-colors duration-150 hover:bg-gradient-to-r hover:from-primary hover:to-primary-end"
                 >
                   <td className="px-4 py-3 text-sm font-semibold text-tertiary transition-colors duration-150 group-hover:text-secondary md:px-6 md:text-base">
                     {customer.name} {customer.surname}
