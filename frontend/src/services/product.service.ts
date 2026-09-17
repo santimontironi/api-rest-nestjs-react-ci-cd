@@ -31,7 +31,7 @@ export const getProductByIdService = async (id: string) => {
   return productSchema.parse(response.data)
 }
 
-export const editProductService = async ({ id, image, ...data }: editProductPayload) => {
+export const editProductService = async (id: string, { image, ...data }: editProductPayload) => {
   const formData = new FormData();
   formData.append("name", data.name);
   formData.append("description", data.description);

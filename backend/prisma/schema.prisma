@@ -39,30 +39,37 @@ model Category {
 }
 
 model Product {
-  id          String     @id @default(uuid())
-  image       String?
-  name        String
-  description String
-  stock       Int
-  price       Float
-  categoryId  String
-  category    Category   @relation(fields: [categoryId], references: [id])
-  saleItems   SaleItem[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id            String     @id @default(uuid())
+  image         String?
+  imagePublicId String?
+  name          String
+  description   String
+  stock         Int
+  price         Float
+  categoryId    String
+  category      Category   @relation(fields: [categoryId], references: [id])
+  saleItems     SaleItem[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
 }
 
 model Sale {
-  id              String     @id @default(uuid())
+  id              String        @id @default(uuid())
   total           Float
+  paymentMethod   PaymentMethod
   customerId      String?
-  customer        Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customer        Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
   customerName    String?
   customerSurname String?
   customerPhone   String?
   items           SaleItem[]
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model SaleItem {

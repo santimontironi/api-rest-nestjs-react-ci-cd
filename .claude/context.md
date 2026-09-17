@@ -59,5 +59,16 @@ resueltos, y como sistema listo para ofrecer a negocios de la zona.
 
 ## Estado
 
-Proyecto en etapa inicial. Ambas apps están scaffoldeadas (NestJS y Vite + React) y las
-funcionalidades se construyen de forma incremental.
+Ambas apps están scaffoldeadas (NestJS y Vite + React) y las funcionalidades se construyen de
+forma incremental. Estado por área:
+
+- **Auth** (registro, login/logout, confirmación por email, cambio y recuperación de
+  contraseña): implementado.
+- **Catálogo** (productos y categorías, CRUD completo con imagen en Cloudinary): implementado.
+- **Clientes**: implementado en el backend (CRUD completo); en el frontend está alta, listado y
+  baja, falta edición.
+- **Ventas, reportes/dashboard, caché con Redis e importación de productos por Excel**: todavía
+  no implementados. Solo existe el scaffold vacío del módulo `sales` en el backend y un
+  placeholder de `Sales`/`Dashboard` en el frontend. `.claude/spec.md` ya documenta el
+  comportamiento objetivo de estas partes (marcado explícitamente como pendiente en cada
+  sección) para guiar su implementación futura.

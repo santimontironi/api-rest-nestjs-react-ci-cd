@@ -95,14 +95,14 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 | `name` | `String` | `@unique` |
 | `products` | `Product[]` | Lado inverso de la relación con `Product` |
 | `createdAt` | `DateTime` | `@default(now())` |
-| `updatedAt` | `DateTime` | `@updatedAt` |
 
 ### Product
 
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | `String` | PK, `@default(uuid())` |
-| `image` | `String` | URL de la imagen en Cloudinary. Obligatoria |
+| `image` | `String?` | URL de la imagen en Cloudinary. `null` si el producto no tiene imagen propia |
+| `imagePublicId` | `String?` | `public_id` de Cloudinary de la imagen actual. Se usa para borrarla del storage cuando se reemplaza o cuando se borra el producto. `null` si `image` no vino de una subida propia (por ejemplo, la importación por Excel con URL externa, ver esa sección) |
 | `name` | `String` | |
 | `description` | `String` | |
 | `stock` | `Int` | No negativo |
@@ -119,6 +119,7 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 |---|---|---|
 | `id` | `String` | PK, `@default(uuid())` |
 | `total` | `Float` | Suma de `quantity * unitPrice` de todas sus líneas |
+| `paymentMethod` | `PaymentMethod` | Enum (`CASH` \| `TRANSFER`), obligatorio |
 | `customerId` | `String?` | FK a `Customer.id`, opcional. `onDelete: SetNull`: si el cliente se borra, la venta queda sin cliente asociado, sin perder el resto de su información |
 | `customer` | `Customer?` | `@relation(fields: [customerId], references: [id])` |
 | `customerName` | `String?` | Nombre del cliente al momento de la venta (snapshot, no cambia si el cliente se renombra o se borra después). `null` si la venta no tuvo cliente asociado |
@@ -143,6 +144,13 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 | `categoryName` | `String` | Categoría del producto al momento de la venta (snapshot, no cambia si el producto se recategoriza después) |
 
 ## Autenticación
+
+> **Estado actual**: implementado `register`, `login`, `logout`, `forgot-password`,
+> `reset-password/:token` y `me`. **No implementados todavía**: la confirmación de cuenta por
+> email (`User` no tiene campo de verificación en `schema.prisma`, y `register` no envía mail ni
+> bloquea el login de una cuenta sin confirmar) ni `PATCH /auth/change-password` (no existe en
+> `auth.controller.ts`; `ChangePassword.tsx` es un placeholder). Estas dos secciones documentan
+> el comportamiento objetivo.
 
 Todas las rutas del backend van prefijadas con **`/api`** (`app.setGlobalPrefix('api')` en
 `main.ts`). Las rutas mencionadas en esta spec se listan sin ese prefijo por brevedad: por
@@ -208,9 +216,14 @@ Todos requieren autenticación y operan sobre el catálogo compartido.
 
 - Un `id` inexistente responde `404`.
 - `GET /products` responde `200` con un array vacío si el catálogo está vacío.
+- `PATCH` reemplaza la imagen solo si viene un archivo nuevo; si no viene, conserva `image` e
+  `imagePublicId` actuales. Cuando sí viene, primero sube la nueva imagen a Cloudinary y recién
+  después borra de Cloudinary la que tenía antes (usando `imagePublicId`), para no quedarse sin
+  imagen si la subida falla.
 - `DELETE` es un borrado real, no soft delete: es seguro porque `SaleItem` guarda su propio
   snapshot (`productName`, `categoryName`, `unitPrice`) y no depende de que el producto siga
-  existiendo.
+  existiendo. Además de borrar el registro, si el producto tenía `imagePublicId` borra también su
+  imagen de Cloudinary.
 
 ## Endpoints de categorías
 
@@ -254,14 +267,19 @@ sistema; solo se cargan los clientes **frecuentes**, no todos los que compran.
 
 ## Endpoints de ventas
 
+> **Estado actual**: el módulo `sales` está scaffoldeado (`module`/`controller`/`service` vacíos)
+> pero la lógica descripta abajo todavía no está implementada, igual que `Sales.tsx` en el
+> frontend. Esta sección documenta el comportamiento objetivo, no el actual.
+
 Todos requieren autenticación.
 
 | Método | Ruta | Descripción |
 |---|---|---|
 | `GET` | `/sales` | Lista las ventas (soporta filtros por rango de fechas y por `customerId`) |
 | `GET` | `/sales/:id` | Detalle de una venta con sus líneas |
-| `POST` | `/sales` | Registra una venta con una o más líneas (`productId` + `quantity`) y, opcionalmente, un `customerId` |
+| `POST` | `/sales` | Registra una venta con una o más líneas (`productId` + `quantity`), un `paymentMethod` (`CASH` \| `TRANSFER`) y, opcionalmente, un `customerId` |
 
+- El `paymentMethod` de una venta es **obligatorio**: `CASH` (efectivo) o `TRANSFER` (transferencia).
 - El `customerId` de una venta es **opcional**: solo se asocia cuando el comprador es un cliente
   frecuente ya dado de alta. Cuando se envía, `customerName`, `customerSurname` y `customerPhone`
   se toman del cliente en ese momento y quedan como snapshot (no cambian si el cliente actualiza
@@ -280,40 +298,47 @@ Todos requieren autenticación.
 
 ## Reportes y dashboard
 
+> **Estado actual**: no implementado todavía. No existe módulo `reports` en el backend y
+> `Dashboard.tsx` en el frontend es un placeholder. Esta sección documenta el comportamiento
+> objetivo, no el actual.
+
 Sección de solo lectura sobre los datos de ventas y catálogo, pensada para que el negocio vea
-su actividad de un vistazo.
+su actividad de un vistazo. **No hay un selector general de mes/año que dispare actualizaciones
+en tiempo real de todo el dashboard**: cada reporte se calcula sobre todo el histórico. La única
+excepción es el gráfico de ventas por mes, que trae su propio **selector de año** (independiente
+del resto) para elegir qué año mostrar.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/reports/sales` | Ventas agregadas, filtrables por `month` y/o `year` |
-| `GET` | `/reports/sales-by-category` | Ventas agrupadas por categoría de producto, en el rango filtrado |
-| `GET` | `/reports/sales-trend` | Ventas agrupadas por período (`day` o `month`, vía query param `granularity`), para ver evolución en el tiempo |
-| `GET` | `/reports/top-products` | Top N productos más vendidos en el rango filtrado, ordenable por cantidad o por monto (`orderBy`), con `limit` |
-| `GET` | `/reports/top-customers` | Top N clientes con más compras en el rango filtrado, ordenable por cantidad de ventas o por monto (`orderBy`), con `limit` |
+| `GET` | `/reports/sales-trend` | Total de ventas agregado por mes, filtrable por `year` |
+| `GET` | `/reports/top-products` | Top 10 productos más vendidos, histórico, ordenado por cantidad |
+| `GET` | `/reports/sales-by-category` | Categorías más vendidas históricas, en % sobre cantidad de ventas (no sobre monto) |
+| `GET` | `/reports/top-customers` | Top 10 clientes con más compras, histórico, ordenado por cantidad de compras |
 | `GET` | `/reports/stock-by-category` | Stock actual agrupado por categoría |
 | `GET` | `/reports/low-stock` | Productos con stock por debajo de un umbral (`threshold`) |
-| `GET` | `/reports/products-by-category` | Cantidad de productos por categoría (foto fija del catálogo, no depende del rango de fechas) |
 
-- Los filtros de fecha (`month`, `year`) son query params opcionales; sin filtro, se devuelve el
-  total histórico.
-- El frontend consume estos endpoints para armar un **dashboard** con: selector de mes/año,
-  total de ventas del período, y los siguientes gráficos:
-  - **Barras** — comparación entre categorías o evolución en el tiempo:
-    - Ventas por categoría (`/reports/sales-by-category`)
-    - Ventas por mes/día, últimos 6-12 meses o últimos 30 días (`/reports/sales-trend`)
-    - Top N productos más vendidos, por cantidad o por monto (`/reports/top-products`)
-    - Top N clientes con más compras, por cantidad o por monto (`/reports/top-customers`)
-    - Stock actual por categoría o productos con stock bajo (`/reports/stock-by-category`, `/reports/low-stock`)
-  - **Torta/dona** — relación parte-todo con pocas categorías, no series temporales:
-    - Cantidad de productos por categoría (`/reports/products-by-category`)
-    - Participación % de cada categoría sobre el total vendido, misma data que
-      `/reports/sales-by-category` pero expresada como porcentaje en vez de monto absoluto
-- `/reports/sales`, `/reports/sales-by-category`, `/reports/sales-trend` y `/reports/top-products`
-  agrupan usando `productName`/`categoryName`/`unitPrice` de `SaleItem` (snapshot), no hacen join
-  a `Product`/`Category`: siguen siendo precisos aunque el producto o la categoría se hayan
-  editado o eliminado después de la venta. `/reports/stock-by-category`, `/reports/low-stock` y
-  `/reports/products-by-category` sí reflejan el catálogo **actual** (`Product`/`Category`),
-  porque son fotos del estado presente, no del histórico de ventas.
+El frontend consume estos endpoints para armar un **dashboard** con:
+
+- **Barras**:
+  - Ventas por mes (`/reports/sales-trend`): las 12 barras (una por mes) del año elegido en su
+    selector de año.
+  - Stock actual por categoría (`/reports/stock-by-category`).
+- **Torta/dona**:
+  - Categorías más vendidas históricas (`/reports/sales-by-category`): cantidad de ventas por
+    categoría, expresada en % sobre el total histórico (no sobre monto).
+- **Listados** (no son gráfico):
+  - Top 10 productos más vendidos (`/reports/top-products`).
+  - Top 10 clientes con más compras (`/reports/top-customers`).
+- **Alertas / mensajes** (no es gráfico):
+  - Stock bajo (`/reports/low-stock`): listado de mensajes, color **rojo** si el stock es
+    **≤ 5 unidades**, color **amarillo** si es **≤ 10 unidades**.
+
+- `/reports/sales-trend`, `/reports/sales-by-category` y `/reports/top-products` agrupan usando
+  `productName`/`categoryName`/`unitPrice` de `SaleItem` (snapshot), no hacen join a
+  `Product`/`Category`: siguen siendo precisos aunque el producto o la categoría se hayan editado
+  o eliminado después de la venta. `/reports/stock-by-category` y `/reports/low-stock` sí reflejan
+  el catálogo **actual** (`Product`/`Category`), porque son fotos del estado presente, no del
+  histórico de ventas.
 - `/reports/top-customers` agrupa por `customerId`, usando `customerName`/`customerSurname` de
   `Sale` (snapshot) para mostrar el nombre; las ventas sin `customerId` (sin cliente asociado) no
   entran en este reporte.
@@ -322,19 +347,36 @@ su actividad de un vistazo.
 
 ## Imágenes de productos
 
+> **Estado actual**: la subida a Cloudinary y la validación de tipo/tamaño en el **backend**
+> (`ParseFilePipeBuilder` + `upload.consts.ts`) ya funcionan. Lo que falta: la obligatoriedad de
+> imagen al crear no está aplicada (`Product.image` es opcional en `schema.prisma`, `String?`, y el
+> endpoint de creación marca el archivo como `fileIsRequired: false`), y no hay validación en el
+> **frontend**: `addProductSchema` no valida el archivo (se maneja aparte con `useState`, no pasa
+> por Zod) y el input de imagen en `InputProductModal`/`EditProductModal` no tiene `required` ni
+> chequeo de tamaño (solo el atributo `accept`, que no es una validación real). Esta sección
+> documenta el comportamiento objetivo en los puntos que faltan.
+
 - El archivo se recibe con **Multer** en `memoryStorage` (buffer, sin escribir a disco) y se
-  sube a **Cloudinary** desde un módulo `cloudinary` del backend. En `Product.image` se guarda
-  la URL segura que devuelve Cloudinary, nunca el archivo.
+  sube a **Cloudinary** desde un módulo `cloudinary` del backend (`CloudinaryService`). En
+  `Product.image` se guarda la URL segura que devuelve Cloudinary y en `Product.imagePublicId` su
+  `public_id`, nunca el archivo.
 - Validaciones del archivo en el backend: tipo `image/jpeg`, `image/png` o `image/webp`, y un
   tamaño máximo de **2 MB**. Si no cumple, responde `400`.
 - **Crear** exige imagen. **Actualizar** la acepta como opcional: si no viene, se conserva la
   que ya estaba.
-- Si la subida a Cloudinary falla, **no se crea el producto**: primero se sube la imagen y solo
-  con la URL en mano se escribe en la base.
+- Si la subida a Cloudinary falla, **no se crea ni se actualiza el producto**: primero se sube la
+  imagen y solo con la URL y el `public_id` en mano se escribe en la base.
+- `imagePublicId` es lo que permite borrar la imagen vieja de Cloudinary cuando se reemplaza
+  (`editProduct`) o cuando se borra el producto (`deleteProduct`), evitando dejar archivos
+  huérfanos en el storage. El borrado en Cloudinary corre después de aplicar el cambio en la base,
+  nunca antes: si Cloudinary falla, el producto ya quedó creado/actualizado/borrado igual.
 - En el frontend el formulario envía `FormData`. El esquema de Zod valida el archivo (tipo y
   tamaño) antes de enviarlo, con las mismas reglas que el backend.
 
 ## Importación de productos por Excel
+
+> **Estado actual**: no implementado todavía (`xlsx` no está instalado, ver
+> `Pendiente de instalar`). No existe la ruta `POST /products/import`.
 
 Permite dar de alta muchos productos de una sola vez a partir de una planilla, en vez de
 cargarlos uno por uno desde el formulario.
@@ -383,6 +425,9 @@ responde `429`. Implementado con `@nestjs/throttler`; los valores están en
 `backend/src/utils/consts/auth.consts.ts`.
 
 ## Redis
+
+> **Estado actual**: no implementado todavía (ver `Pendiente de instalar`). No hay módulo `redis`
+> en el backend.
 
 Se usa como caché de lecturas frecuentes (listado y detalle de productos). Toda mutación sobre
 un producto invalida las claves afectadas.
@@ -449,8 +494,9 @@ Ya incorporados: Prisma (`@prisma/client`, `@prisma/adapter-pg`, `pg`), Husky
 (`nodemailer`, `@types/nodemailer`), la carga de variables de entorno (`@nestjs/config`,
 `dotenv`), JWT (`@nestjs/jwt`), bcrypt (`bcrypt`, `@types/bcrypt`), la validación de DTOs
 (`class-validator`, `class-transformer`), `cookie-parser` (`cookie-parser`,
-`@types/cookie-parser`) y rate limiting (`@nestjs/throttler`).
+`@types/cookie-parser`), rate limiting (`@nestjs/throttler`), Multer
+(`@nestjs/platform-express`, `@types/multer`), Cloudinary (`cloudinary`) y TanStack Query
+(`@tanstack/react-query`).
 
-Todavía faltan: Redis,
-multer (`@types/multer`), cloudinary, TanStack Query y `xlsx` (parseo del Excel de importación
-de productos). Actualizar esta sección a medida que se agreguen.
+Todavía faltan: Redis y `xlsx` (parseo del Excel de importación de productos). Actualizar esta
+sección a medida que se agreguen.

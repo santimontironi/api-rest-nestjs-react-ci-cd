@@ -1,27 +1,30 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAddProduct } from "../../hooks/productsHooks/useAddProduct";
+import { useEditProduct } from "../../hooks/productsHooks/useEditProduct";
 import { useGetCategories } from "../../hooks/categoriesHooks/useGetCategories";
 import { addProductSchema, type addProductType, type addProductFormInput } from "../../../../shared/schemas/product.schema";
+import type { Product } from "../../../../shared/schemas/product.schema";
 import Loader from "../ui/Loader";
 
-const InputProductModal = ({ onClose }: { onClose: () => void }) => {
+const EditProductModal = ({ product, onClose }: { product: Product; onClose: () => void }) => {
 
-  // z.input   → mientras el usuario tipea (RHF, register, errors)
-  //    ↓ (el resolver corre schema.parse() acá)
-  // z.output/infer  → resultado validado que recibe el onSubmit/handleSubmit
-  //    ↓ (se re-stringifica a mano para el FormData, por el multipart)
-  // string otra vez → lo que efectivamente viaja por HTTP
   const { register, handleSubmit, formState: { errors } } = useForm<addProductFormInput, unknown, addProductType>({
-    resolver: zodResolver(addProductSchema)
+    resolver: zodResolver(addProductSchema),
+    defaultValues: {
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      categoryId: product.categoryId,
+    },
   });
 
   const [image, setImage] = useState<File | null>(null);
 
-  const { mutate: addProduct, isPending, error } = useAddProduct()
+  const { mutate: editProduct, isPending, error } = useEditProduct();
 
-  const { data: categories, isPending: isCategoriesPending, isError: isCategoriesError } = useGetCategories()
+  const { data: categories, isPending: isCategoriesPending, isError: isCategoriesError } = useGetCategories();
 
   const categoryPlaceholder = isCategoriesPending
     ? "Cargando categorías..."
@@ -30,7 +33,7 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
       : "Seleccioná una categoría";
 
   const onSubmit = (data: addProductType) => {
-    addProduct({ ...data, image }, { onSuccess: onClose });
+    editProduct({ id: product.id, ...data, image }, { onSuccess: onClose });
   };
 
   return (
@@ -41,7 +44,7 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="add-product-title"
+        aria-labelledby="edit-product-title"
         className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-secondary p-8 shadow-[0_35px_90px_-15px] shadow-tertiary/55 ring-1 ring-tertiary/15 md:p-10 xl:p-8"
         onClick={(event) => event.stopPropagation()}
       >
@@ -55,13 +58,13 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
         </button>
 
         <span
-          id="add-product-title"
+          id="edit-product-title"
           className="text-xs font-bold text-primary xl:text-xl"
         >
-          Agregar producto
+          Editar producto
         </span>
         <p className="mt-2 text-sm text-tertiary/60">
-          Completá los datos para sumar un nuevo producto al catálogo.
+          Actualizá los datos del producto.
         </p>
 
         <form
@@ -167,7 +170,6 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
               </label>
               <select
                 id="categoryId"
-                defaultValue=""
                 disabled={isCategoriesPending || isCategoriesError || !categories?.length}
                 className="h-11 w-full rounded-lg border border-tertiary/10 bg-tertiary/5 px-3.5 text-base text-tertiary transition-colors duration-150 outline-none focus-visible:border-primary focus-visible:bg-secondary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
                 {...register("categoryId")}
@@ -227,7 +229,7 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
                 <Loader inline />
               ) : (
                 <>
-                  Guardar producto
+                  Guardar cambios
                   <i className="bi bi-check-lg text-lg" aria-hidden="true" />
                 </>
               )}
@@ -239,4 +241,4 @@ const InputProductModal = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-export default InputProductModal;
+export default EditProductModal;

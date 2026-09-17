@@ -1,12 +1,15 @@
 import { useState } from "react"
 import InputProductModal from "./InputProductModal"
+import EditProductModal from "./EditProductModal"
 import ProductsTable from "./ProductsTable"
 import ProductDetail from "./ProductDetail"
 import { useGetProducts } from "../../hooks/productsHooks/useGetProducts"
 import Loader from "../ui/Loader"
+import type { Product } from "../../../../shared/schemas/product.schema"
 
 const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const { data: products, isPending, isError, error } = useGetProducts()
 
@@ -45,11 +48,26 @@ const Products = () => {
         <InputProductModal onClose={() => setIsModalOpen(false)} />
       )}
 
+      {editingProduct && (
+        <EditProductModal
+          product={editingProduct}
+          onClose={() => setEditingProduct(null)}
+        />
+      )}
+
       {products && products.length > 0 && (
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm text-tertiary/50">
-            Total de productos: <span className="font-semibold text-tertiary/80">{products.length}</span>
-          </p>
+          <div className="flex w-fit items-center gap-3 rounded-2xl border border-primary/15 bg-primary/5 px-4 py-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <i className="bi bi-box-seam text-base" aria-hidden="true" />
+            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-bold text-tertiary md:text-3xl">{products.length}</span>
+              <span className="text-sm text-tertiary/50">
+                {products.length === 1 ? "producto" : "productos"}
+              </span>
+            </div>
+          </div>
 
           <div className="relative w-full md:w-96">
             <i className="bi bi-search absolute top-1/2 left-4 -translate-y-1/2 text-base text-primary" aria-hidden="true" />
@@ -94,6 +112,7 @@ const Products = () => {
         <ProductsTable
           products={products}
           onProductClick={(product) => setSelectedProductId(product.id)}
+          onEditClick={(product) => setEditingProduct(product)}
         />
       )}
     </div>

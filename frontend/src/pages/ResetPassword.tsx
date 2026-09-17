@@ -35,7 +35,7 @@ const ResetPassword = () => {
       <div className="relative w-full max-w-lg rounded-2xl bg-secondary p-8 shadow-[0_35px_90px_-15px] shadow-tertiary/55 ring-1 ring-tertiary/15 md:p-10 xl:p-12">
         <div className="mb-6 flex w-fit">
           <img
-            src="/images/logo.png"
+            src="/images/logo.jpg"
             alt="Logo"
             className="h-14 w-14 rounded-lg object-contain md:h-17 md:w-17 xl:h-20 xl:w-20"
           />
@@ -55,7 +55,7 @@ const ResetPassword = () => {
             </p>
             <Link
               to="/"
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-gradient-to-r hover:from-primary hover:to-primary-end focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
             >
               Volver al inicio
               <i className="bi bi-arrow-left text-lg" aria-hidden="true" />
@@ -68,7 +68,7 @@ const ResetPassword = () => {
             </p>
             <Link
               to="/"
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-gradient-to-r hover:from-primary hover:to-primary-end focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
             >
               Iniciar sesión
               <i className="bi bi-arrow-right text-lg" aria-hidden="true" />
@@ -103,7 +103,7 @@ const ResetPassword = () => {
             <button
               type="submit"
               disabled={isPending}
-              className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-gradient-to-r hover:from-primary hover:to-primary-end focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? (
                 <Loader inline />

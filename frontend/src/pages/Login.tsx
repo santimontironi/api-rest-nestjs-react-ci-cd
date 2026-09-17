@@ -39,21 +39,26 @@ const Login = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-secondary">
       <div className="relative flex min-h-screen flex-col md:flex-row">
-        <div className="relative flex min-h-[52vh] flex-col justify-center gap-8 bg-primary px-6 shadow-[10px_10px_15px_4px] shadow-tertiary/60 md:min-h-[60vh] md:gap-10 md:px-10 xl:min-h-screen md:w-[47%] xl:w-[53%] xl:px-16 xl:shadow-[14px_0_30px_-6px] 2xl:px-24">
+        <div className="relative flex min-h-[52vh] flex-col justify-center gap-8 overflow-hidden bg-gradient-to-br from-primary to-primary-end px-6 shadow-[10px_10px_15px_4px] shadow-tertiary/10 md:min-h-[60vh] md:gap-10 md:px-10 xl:min-h-screen md:w-[47%] xl:w-[53%] xl:px-16 xl:shadow-[14px_0_30px_-6px] 2xl:px-24">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-16 -left-16 h-32 w-32 rounded-full border-4 border-tertiary/25 md:-top-20 md:-left-20 md:h-40 md:w-40 xl:-top-24 xl:-left-24 xl:h-56 xl:w-56 2xl:-top-28 2xl:-left-28 2xl:h-64 2xl:w-64"
+            className="pointer-events-none absolute top-1/2 left-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-secondary/10 blur-3xl md:h-96 md:w-96 xl:h-[32rem] xl:w-[32rem]"
           />
 
           <div
             aria-hidden="true"
-            className="pointer-events-none hidden absolute rounded-full border-4 border-tertiary/25 xl:block xl:bottom-0 xl:-left-24 xl:h-56 xl:w-56 2xl:bottom-0 2xl:-left-28 2xl:h-64 2xl:w-64"
+            className="pointer-events-none absolute -top-16 -left-16 h-32 w-32 rounded-full border-4 border-tertiary/30 md:-top-20 md:-left-20 md:h-40 md:w-40 xl:-top-24 xl:-left-24 xl:h-56 xl:w-56 2xl:-top-28 2xl:-left-28 2xl:h-64 2xl:w-64"
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none hidden absolute rounded-full border-4 border-tertiary/30 xl:block xl:bottom-0 xl:-left-24 xl:h-56 xl:w-56 2xl:bottom-0 2xl:-left-28 2xl:h-64 2xl:w-64"
           />
 
           <div>
             <div className="mb-6 flex w-fit">
               <img
-                src="/images/logo.png"
+                src="/images/logo.jpg"
                 alt="Logo"
                 className="h-14 w-14 rounded-lg object-contain md:h-17 md:w-17 xl:h-20 xl:w-20"
               />
@@ -63,10 +68,10 @@ const Login = () => {
               Accedé a tu cuenta
             </span>
             <h1 className="mt-3 max-w-lg text-5xl leading-[1.02] font-bold tracking-tight text-secondary [text-shadow:0_6px_28px_rgba(0,8,18,0.4)] md:max-w-lg md:text-6xl xl:max-w-2xl xl:text-7xl 2xl:max-w-4xl 2xl:text-8xl">
-              Bienvenido a Catálogo.
+              Bienvenido a Vortex PC.
             </h1>
             <p className="mt-5 max-w-xs text-base text-secondary/85 [text-shadow:0_2px_12px_rgba(0,8,18,0.3)] md:mt-6 md:max-w-sm md:text-lg xl:max-w-lg 2xl:max-w-xl">
-              Ingresá con tus credenciales a Catálogo y empezá a gestionar tus
+              Ingresá con tus credenciales a Vortex PC y empezá a gestionar tus
               productos.
             </p>
           </div>
@@ -150,7 +155,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isPending}
-                className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-gradient-to-r hover:from-primary hover:to-primary-end focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isPending ? (
                   <Loader inline />

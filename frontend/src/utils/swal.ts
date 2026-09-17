@@ -1,16 +1,18 @@
 import Swal from "sweetalert2";
 
-const swal = Swal.mixin({
+const swal = Swal.mixin({ //mixin() es un método que sirve para crear una configuración personalizada y reutilizable de tus alertas
   background: "#fffacd",
   color: "#000812",
-  iconColor: "#b81104",
-  confirmButtonColor: "#b81104",
-  cancelButtonColor: "#00081233",
-  buttonsStyling: true,
+  buttonsStyling: false,
   reverseButtons: true,
-  padding: "2em",
+  padding: "1.25em",
   customClass: {
-    popup: "rounded-3xl shadow-[0_35px_90px_-15px] shadow-tertiary/40",
+    popup: "swal-mui-popup",
+    title: "swal-mui-title",
+    htmlContainer: "swal-mui-html",
+    actions: "swal-mui-actions",
+    confirmButton: "swal-mui-confirm",
+    cancelButton: "swal-mui-cancel",
   },
 });
 

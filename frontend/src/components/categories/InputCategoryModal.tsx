@@ -17,7 +17,7 @@ const InputCategoryModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-tertiary/70 px-6 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-secondary/70 px-6 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -85,7 +85,7 @@ const InputCategoryModal = ({ onClose }: { onClose: () => void }) => {
             <button
               type="submit"
               disabled={isPending}
-              className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
+              className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-tertiary px-6 text-base font-semibold text-secondary shadow-[0_18px_35px_-8px] shadow-tertiary/60 outline-none transition-colors duration-150 hover:bg-gradient-to-r hover:from-primary hover:to-primary-end focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
             >
               {isPending ? (
                 <Loader inline />
