@@ -5,20 +5,23 @@ import ResetPassword from "./pages/ResetPassword"
 import Home from "./pages/Home"
 import VerifyAuth from "./components/auth/VerifyAuth"
 import queryClient from "./queryClient"
+import { ThemeContextProvider } from "./context/ThemeContext"
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/restablecer-contrasena/:token" element={<ResetPassword />} />
-          <Route path="/inicio" element={ <VerifyAuth>
-            <Home />
-          </VerifyAuth>} />
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ThemeContextProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/restablecer-contrasena/:token" element={<ResetPassword />} />
+            <Route path="/inicio" element={ <VerifyAuth>
+              <Home />
+            </VerifyAuth>} />
+          </Routes>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ThemeContextProvider>
   )
 }
 

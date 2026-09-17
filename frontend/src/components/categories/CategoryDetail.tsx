@@ -55,6 +55,7 @@ const CategoryDetail = ({ categoryId, onBack }: { categoryId: string; onBack: ()
       <ProductDetail
         productId={selectedProductId}
         onBack={() => setSelectedProductId(null)}
+        hideCategory
       />
     );
   }
@@ -110,6 +111,7 @@ const CategoryDetail = ({ categoryId, onBack }: { categoryId: string; onBack: ()
         <ProductsTable
           products={category.products}
           onProductClick={(product) => setSelectedProductId(product.id)}
+          hideCategory
         />
       ) : (
         <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-tertiary/15 bg-tertiary/5 px-6 py-16 text-center md:py-24">

@@ -2,7 +2,17 @@ import swal from "../../utils/swal";
 import type { Product } from "../../../../shared/schemas/product.schema";
 import { useDeleteProduct } from "../../hooks/productsHooks/useDeleteProduct";
 
-const ProductsTable = ({ products, onProductClick, onEditClick }: { products: Product[]; onProductClick?: (product: Product) => void; onEditClick?: (product: Product) => void; }) => {
+const ProductsTable = ({
+  products,
+  onProductClick,
+  onEditClick,
+  hideCategory,
+}: {
+  products: Product[];
+  onProductClick?: (product: Product) => void;
+  onEditClick?: (product: Product) => void;
+  hideCategory?: boolean;
+}) => {
   const { mutate: deleteProduct } = useDeleteProduct();
 
   const handleDelete = (product: Product) => {
@@ -94,10 +104,12 @@ const ProductsTable = ({ products, onProductClick, onEditClick }: { products: Pr
                     <i className="bi bi-box-seam" aria-hidden="true" />
                     Stock: {product.stock}
                   </span>
-                  <span className="flex items-center gap-1.5 truncate">
-                    <i className="bi bi-tag" aria-hidden="true" />
-                    {product.category.name}
-                  </span>
+                  {!hideCategory && (
+                    <span className="flex items-center gap-1.5 truncate">
+                      <i className="bi bi-tag" aria-hidden="true" />
+                      {product.category.name}
+                    </span>
+                  )}
                   <span className="flex items-center gap-1.5">
                     <i className="bi bi-calendar3" aria-hidden="true" />
                     {product.createdAt.toLocaleDateString("es-AR")}
@@ -119,16 +131,18 @@ const ProductsTable = ({ products, onProductClick, onEditClick }: { products: Pr
                 </th>
                 <th
                   scope="col"
-                  className="w-[26%] px-4 py-3 text-xs font-semibold text-primary md:px-6"
+                  className={`${hideCategory ? "w-[40%]" : "w-[26%]"} px-4 py-3 text-xs font-semibold text-primary md:px-6`}
                 >
                   Producto
                 </th>
-                <th
-                  scope="col"
-                  className="w-[14%] px-4 py-3 text-xs font-semibold text-primary md:px-6"
-                >
-                  Categoría
-                </th>
+                {!hideCategory && (
+                  <th
+                    scope="col"
+                    className="w-[14%] px-4 py-3 text-xs font-semibold text-primary md:px-6"
+                  >
+                    Categoría
+                  </th>
+                )}
                 <th
                   scope="col"
                   className="w-[10%] px-4 py-3 text-xs font-semibold text-primary md:px-6"
@@ -187,9 +201,11 @@ const ProductsTable = ({ products, onProductClick, onEditClick }: { products: Pr
                       </p>
                     </div>
                   </td>
-                  <td className="truncate px-4 py-3 text-sm text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70 md:px-6">
-                    {product.category.name}
-                  </td>
+                  {!hideCategory && (
+                    <td className="truncate px-4 py-3 text-sm text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70 md:px-6">
+                      {product.category.name}
+                    </td>
+                  )}
                   <td className="px-4 py-3 text-sm font-medium text-tertiary transition-colors duration-150 group-hover:text-secondary md:px-6">
                     {product.stock}
                   </td>

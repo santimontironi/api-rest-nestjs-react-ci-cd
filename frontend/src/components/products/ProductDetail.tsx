@@ -2,7 +2,11 @@ import { useProductById } from "../../hooks/productsHooks/useProductById";
 import Loader from "../ui/Loader";
 import GoBack from "../ui/GoBack";
 
-const ProductDetail = ({ productId, onBack }: { productId: string; onBack: () => void }) => {
+const ProductDetail = ({ productId, onBack, hideCategory }: {
+  productId: string;
+  onBack: () => void;
+  hideCategory?: boolean;
+}) => {
   const { data: product, isPending, isError, error } = useProductById(productId);
 
   const backButton = <GoBack label="Volver" onBack={onBack} />;
@@ -51,10 +55,12 @@ const ProductDetail = ({ productId, onBack }: { productId: string; onBack: () =>
 
           <div className="flex min-w-0 flex-col gap-6 xl:col-span-7 xl:gap-8">
             <div className="flex flex-col gap-3">
-              <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                <i className="bi bi-tag" aria-hidden="true" />
-                {product.category.name}
-              </span>
+              {!hideCategory && (
+                <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <i className="bi bi-tag" aria-hidden="true" />
+                  {product.category.name}
+                </span>
+              )}
               <h1 className="text-3xl font-bold text-tertiary md:text-4xl xl:text-5xl">
                 {product.name}
               </h1>
