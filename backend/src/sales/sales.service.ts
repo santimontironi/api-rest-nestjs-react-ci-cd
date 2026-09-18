@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service'
+import { SqlService } from '../sql/sql.service'
 
 @Injectable()
 export class SalesService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly sql: SqlService) { }
 }

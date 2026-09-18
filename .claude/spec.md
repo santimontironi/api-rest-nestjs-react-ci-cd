@@ -9,7 +9,7 @@
 | Framework | NestJS 11 |
 | Lenguaje | TypeScript |
 | Base de datos | PostgreSQL |
-| ORM | Prisma |
+| Acceso a datos | SQL puro (`pg`), sin ORM |
 | Caché | Redis |
 | Autenticación | JWT firmado, transportado en cookie httpOnly |
 | Protección | Rate limiting (`@nestjs/throttler`) |
@@ -295,55 +295,6 @@ Todos requieren autenticación.
   la venta, no los envía el cliente. Quedan como snapshot en `SaleItem` y no cambian después,
   aunque el producto se edite o se elimine.
 - Un `id` inexistente responde `404`.
-
-## Reportes y dashboard
-
-> **Estado actual**: no implementado todavía. No existe módulo `reports` en el backend y
-> `Dashboard.tsx` en el frontend es un placeholder. Esta sección documenta el comportamiento
-> objetivo, no el actual.
-
-Sección de solo lectura sobre los datos de ventas y catálogo, pensada para que el negocio vea
-su actividad de un vistazo. **No hay un selector general de mes/año que dispare actualizaciones
-en tiempo real de todo el dashboard**: cada reporte se calcula sobre todo el histórico. La única
-excepción es el gráfico de ventas por mes, que trae su propio **selector de año** (independiente
-del resto) para elegir qué año mostrar.
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| `GET` | `/reports/sales-trend` | Total de ventas agregado por mes, filtrable por `year` |
-| `GET` | `/reports/top-products` | Top 10 productos más vendidos, histórico, ordenado por cantidad |
-| `GET` | `/reports/sales-by-category` | Categorías más vendidas históricas, en % sobre cantidad de ventas (no sobre monto) |
-| `GET` | `/reports/top-customers` | Top 10 clientes con más compras, histórico, ordenado por cantidad de compras |
-| `GET` | `/reports/stock-by-category` | Stock actual agrupado por categoría |
-| `GET` | `/reports/low-stock` | Productos con stock por debajo de un umbral (`threshold`) |
-
-El frontend consume estos endpoints para armar un **dashboard** con:
-
-- **Barras**:
-  - Ventas por mes (`/reports/sales-trend`): las 12 barras (una por mes) del año elegido en su
-    selector de año.
-  - Stock actual por categoría (`/reports/stock-by-category`).
-- **Torta/dona**:
-  - Categorías más vendidas históricas (`/reports/sales-by-category`): cantidad de ventas por
-    categoría, expresada en % sobre el total histórico (no sobre monto).
-- **Listados** (no son gráfico):
-  - Top 10 productos más vendidos (`/reports/top-products`).
-  - Top 10 clientes con más compras (`/reports/top-customers`).
-- **Alertas / mensajes** (no es gráfico):
-  - Stock bajo (`/reports/low-stock`): listado de mensajes, color **rojo** si el stock es
-    **≤ 5 unidades**, color **amarillo** si es **≤ 10 unidades**.
-
-- `/reports/sales-trend`, `/reports/sales-by-category` y `/reports/top-products` agrupan usando
-  `productName`/`categoryName`/`unitPrice` de `SaleItem` (snapshot), no hacen join a
-  `Product`/`Category`: siguen siendo precisos aunque el producto o la categoría se hayan editado
-  o eliminado después de la venta. `/reports/stock-by-category` y `/reports/low-stock` sí reflejan
-  el catálogo **actual** (`Product`/`Category`), porque son fotos del estado presente, no del
-  histórico de ventas.
-- `/reports/top-customers` agrupa por `customerId`, usando `customerName`/`customerSurname` de
-  `Sale` (snapshot) para mostrar el nombre; las ventas sin `customerId` (sin cliente asociado) no
-  entran en este reporte.
-- Estos endpoints, al ser de solo lectura y agregación, no participan del caché de Redis de
-  productos (ver sección Redis).
 
 ## Imágenes de productos
 

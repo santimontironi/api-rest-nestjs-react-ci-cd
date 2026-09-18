@@ -1,51 +1,61 @@
 import { BadRequestException, Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
+import { randomUUID } from 'crypto'
 import * as bcrypt from 'bcrypt'
-import { PrismaService } from '../prisma/prisma.service'
+import { SqlService } from '../sql/sql.service'
 import { MailService } from '../mail/mail.service'
 import type { ForgotPasswordInput, LoginInput, RegisterInput, ResetPasswordInput } from '../../../shared/schemas/auth.schema'
+
+type UserRow = {
+  id: string
+  email: string
+  password: string
+  name: string
+  surname: string
+}
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly sql: SqlService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
   ) {}
 
   async register(dto: RegisterInput) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    })
+    const { rows: existing } = await this.sql.query<Pick<UserRow, 'id'>>(
+      'SELECT id FROM "User" WHERE email = $1',
+      [dto.email],
+    )
 
-    if (existingUser) {
-      throw new BadRequestException('El email ya está registrado') //BadRequestException es un error HTTP 400
+    if (existing.length > 0) {
+      throw new BadRequestException('El email ya está registrado')
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10)
+    const id = randomUUID()
 
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        password: hashedPassword,
-        name: dto.name,
-        surname: dto.surname,
-      },
-      select: { id: true, email: true },
-    })
+    const { rows } = await this.sql.query<Pick<UserRow, 'id' | 'email'>>(
+      `INSERT INTO "User" (id, email, password, name, surname, "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, NOW())
+       RETURNING id, email`,
+      [id, dto.email, hashedPassword, dto.name, dto.surname],
+    )
 
     return {
       message: 'Usuario registrado.',
-      user,
+      user: rows[0],
     }
   }
 
   async login(dto: LoginInput) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    })
+    const { rows } = await this.sql.query<UserRow>(
+      'SELECT id, email, password, name, surname FROM "User" WHERE email = $1',
+      [dto.email],
+    )
+    const user = rows[0]
 
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas')
@@ -70,9 +80,11 @@ export class AuthService {
   }
 
   async forgotPassword(dto: ForgotPasswordInput) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    })
+    const { rows } = await this.sql.query<Pick<UserRow, 'id' | 'email'>>(
+      'SELECT id, email FROM "User" WHERE email = $1',
+      [dto.email],
+    )
+    const user = rows[0]
 
     if (!user) {
       throw new NotFoundException('Usuario no encontrado')
@@ -101,10 +113,10 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10)
 
-    await this.prisma.user.update({
-      where: { id: payload.sub },
-      data: { password: hashedPassword },
-    })
+    await this.sql.query('UPDATE "User" SET password = $1, "updatedAt" = NOW() WHERE id = $2', [
+      hashedPassword,
+      payload.sub,
+    ])
 
     return {
       message: 'Contraseña actualizada correctamente.',
@@ -112,10 +124,11 @@ export class AuthService {
   }
 
   async me(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, name: true, surname: true },
-    })
+    const { rows } = await this.sql.query<Pick<UserRow, 'id' | 'email' | 'name' | 'surname'>>(
+      'SELECT id, email, name, surname FROM "User" WHERE id = $1',
+      [userId],
+    )
+    const user = rows[0]
 
     if (!user) {
       throw new UnauthorizedException('No autenticado')

@@ -56,8 +56,9 @@ legible, prolijo, mantenible y escalable.
   `sales`, `mail`, `cloudinary`, `prisma`). Cada módulo con su `module`, `controller`, `service` y
   carpeta `dto/`.
 - **Los controllers no tienen lógica de negocio.** Reciben, delegan al service y devuelven.
-- **Prisma solo se usa dentro de los services**, nunca en un controller.
-- Un `PrismaService` único, inyectado; no instanciar `PrismaClient` suelto.
+- **Las consultas son SQL puro, sin ORM (nada de Prisma).** Las queries se escriben a mano y solo
+  se usan dentro de los services, nunca en un controller.
+- Un cliente de `pg` único, inyectado; no instanciar `Pool`/`Client` sueltos.
 - **DTOs con `class-validator`** para toda entrada. `ValidationPipe` global con `whitelist: true`
   y `forbidNonWhitelisted: true`. **Excepción:** si el payload tiene un esquema en `shared/schemas/`,
   se valida con ese esquema vía `ZodValidationPipe` (`backend/src/common/pipes/zod-validation.pipe.ts`)
@@ -72,9 +73,10 @@ legible, prolijo, mantenible y escalable.
 - **Toda la interacción con Cloudinary pasa por el `CloudinaryService`.** El módulo `products`
   recibe el buffer de Multer y delega; no configura el SDK ni conoce sus credenciales.
 - Multer siempre en `memoryStorage`. **Nunca escribir archivos subidos al disco del servidor.**
-- Los cambios de esquema van siempre por **migración de Prisma**, nunca editando la base a mano.
-- `schema.prisma` es la fuente de verdad de los modelos. Si un cambio lo requiere, actualizar
-  también `.claude/spec.md`.
+- El esquema se gestiona directamente en la base (pgAdmin), sin archivo de migración versionado
+  en el repo.
+- `.claude/spec.md` es la única fuente de verdad documentada de los modelos. Si un cambio de
+  esquema lo requiere, actualizarla ahí.
 
 ## Frontend (React)
 
