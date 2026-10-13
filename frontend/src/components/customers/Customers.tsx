@@ -35,20 +35,9 @@ const Customers = () => {
       )}
 
       {customers && customers.length > 0 && (
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm text-tertiary/50">
-            Total de clientes: <span className="font-semibold text-tertiary/80">{customers.length}</span>
-          </p>
-
-          <div className="relative w-full md:w-96">
-            <i className="bi bi-search absolute top-1/2 left-4 -translate-y-1/2 text-base text-primary" aria-hidden="true" />
-            <input
-              type="text"
-              placeholder="Buscar cliente..."
-              className="h-12 w-full rounded-xl border-2 border-primary/30 bg-secondary pl-11 pr-4 text-base text-tertiary shadow-[0_10px_30px_-15px] shadow-primary/40 outline-none placeholder:text-tertiary/40 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
-            />
-          </div>
-        </div>
+        <p className="text-sm text-tertiary/50">
+          Total de clientes: <span className="font-semibold text-tertiary/80">{customers.length}</span>
+        </p>
       )}
 
       {isPending && (

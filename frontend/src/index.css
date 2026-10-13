@@ -16,74 +16,70 @@ body {
     font-family: "Nata Sans", sans-serif;
 }
 
-.swal-mui-popup {
-    border-radius: 20px !important;
-    box-shadow:
-        0px 11px 15px -7px rgba(0, 0, 0, 0.2),
-        0px 24px 38px 3px rgba(0, 0, 0, 0.14),
-        0px 9px 46px 8px rgba(0, 0, 0, 0.12) !important;
-    font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+.swal2-container {
+    background: color-mix(in srgb, var(--color-secondary) 70%, transparent) !important;
+    backdrop-filter: blur(4px) !important;
 }
 
-.swal-mui-title {
+.swal-popup {
+    border-radius: 1rem !important;
+    background-color: var(--color-secondary) !important;
+    color: var(--color-tertiary) !important;
+    box-shadow: 0px 35px 90px -15px color-mix(in srgb, var(--color-tertiary) 55%, transparent) !important;
+    font-family: "Nata Sans", sans-serif;
+}
+
+.swal-title {
     font-size: 1.25rem !important;
-    font-weight: 500 !important;
-    line-height: 1.6 !important;
+    font-weight: 600 !important;
+    line-height: 1.5 !important;
+    color: var(--color-tertiary) !important;
 }
 
-.swal-mui-html {
-    font-size: 0.875rem !important;
-    color: color-mix(in srgb, var(--color-tertiary) 70%, transparent) !important;
+.swal-html {
+    font-size: 0.9375rem !important;
+    color: color-mix(in srgb, var(--color-tertiary) 60%, transparent) !important;
 }
 
-.swal-mui-actions {
-    gap: 0.5rem;
+.swal-actions {
+    gap: 0.75rem;
 }
 
-.swal-mui-confirm,
-.swal-mui-cancel {
-    border-radius: 4px !important;
-    min-width: 64px;
-    padding: 6px 16px !important;
-    font-size: 0.875rem !important;
-    font-weight: 500 !important;
-    line-height: 1.75 !important;
-    letter-spacing: 0.02857em !important;
-    text-transform: uppercase !important;
+.swal-confirm,
+.swal-cancel {
+    border-radius: 0.75rem !important;
+    min-width: 6.5rem;
+    padding: 0.65rem 1.25rem !important;
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+    line-height: 1.5 !important;
     cursor: pointer !important;
     transition:
         background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-        box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
-        border-color 150ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+        color 150ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.swal-mui-confirm {
+.swal-confirm {
     background-color: var(--color-primary) !important;
     color: var(--color-secondary) !important;
     border: 1px solid var(--color-primary) !important;
-    box-shadow:
-        0px 3px 1px -2px rgba(0, 0, 0, 0.2),
-        0px 2px 2px 0px rgba(0, 0, 0, 0.14),
-        0px 1px 5px 0px rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 18px 35px -8px color-mix(in srgb, var(--color-primary) 40%, transparent) !important;
 }
 
-.swal-mui-confirm:hover {
-    background-color: color-mix(in srgb, var(--color-primary) 85%, black) !important;
-    border-color: color-mix(in srgb, var(--color-primary) 85%, black) !important;
-    box-shadow:
-        0px 2px 4px -1px rgba(0, 0, 0, 0.2),
-        0px 4px 5px 0px rgba(0, 0, 0, 0.14),
-        0px 1px 10px 0px rgba(0, 0, 0, 0.12) !important;
+.swal-confirm:hover {
+    background-color: var(--color-tertiary) !important;
+    border-color: var(--color-tertiary) !important;
 }
 
-.swal-mui-cancel {
+.swal-cancel {
     background-color: transparent !important;
-    color: var(--color-tertiary) !important;
-    border: 1px solid color-mix(in srgb, var(--color-tertiary) 35%, transparent) !important;
+    color: color-mix(in srgb, var(--color-tertiary) 60%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--color-tertiary) 15%, transparent) !important;
     box-shadow: none !important;
 }
 
-.swal-mui-cancel:hover {
-    background-color: color-mix(in srgb, var(--color-tertiary) 8%, transparent) !important;
-    border-color: color-mix(in srgb, var(--color-tertiary) 55%, transparent) !important;
+.swal-cancel:hover {
+    color: var(--color-tertiary) !important;
+    border-color: color-mix(in srgb, var(--color-tertiary) 25%, transparent) !important;
 }

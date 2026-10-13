@@ -18,8 +18,11 @@ type ProductRow = {
   updatedAt: Date
 }
 
+<<<<<<< HEAD
 type ProductWithCategoryRow = ProductRow & { category: { id: string; name: string; createdAt: string } }
 
+=======
+>>>>>>> 1f3c1f746ac757e98ca34833406fc1e30b48385e
 @Injectable()
 export class ProductsService {
   constructor(
@@ -28,15 +31,22 @@ export class ProductsService {
   ) { }
 
   private async findProductById(id: string) {
+<<<<<<< HEAD
     const { rows } = await this.sql.pool.query<ProductWithCategoryRow>( // {rows} desestructurado desde el query
       `SELECT p.id, p.image, p."imagePublicId", p.name, p.description, p.stock, p.price, p."categoryId",
               p."stockLevel", p."createdAt", p."updatedAt",
               json_build_object('id', c.id, 'name', c.name, 'createdAt', c."createdAt") AS category
+=======
+    const { rows } = await this.sql.query<ProductWithCategoryRow>(
+      `SELECT p.id, p.image, p."imagePublicId", p.name, p.description, p.stock, p.price, p."categoryId",
+              p."createdAt", p."updatedAt", c.name AS "categoryName", c."createdAt" AS "categoryCreatedAt"
+>>>>>>> 1f3c1f746ac757e98ca34833406fc1e30b48385e
        FROM "Product" p
        JOIN "Category" c ON c.id = p."categoryId"
        WHERE p.id = $1`,
       [id],
     )
+<<<<<<< HEAD
     return rows[0] ?? null
   }
 
@@ -45,11 +55,24 @@ export class ProductsService {
       `SELECT p.id, p.image, p."imagePublicId", p.name, p.description, p.stock, p.price, p."categoryId",
               p."stockLevel", p."createdAt", p."updatedAt",
               json_build_object('id', c.id, 'name', c.name, 'createdAt', c."createdAt") AS category
+=======
+    return rows[0] ? this.toProduct(rows[0]) : null
+  }
+
+  async getProducts() {
+    const { rows } = await this.sql.query<ProductWithCategoryRow>(
+      `SELECT p.id, p.image, p."imagePublicId", p.name, p.description, p.stock, p.price, p."categoryId",
+              p."createdAt", p."updatedAt", c.name AS "categoryName", c."createdAt" AS "categoryCreatedAt"
+>>>>>>> 1f3c1f746ac757e98ca34833406fc1e30b48385e
        FROM "Product" p
        JOIN "Category" c ON c.id = p."categoryId"
        ORDER BY p."createdAt" DESC`,
     )
+<<<<<<< HEAD
     return rows
+=======
+    return rows.map((row) => this.toProduct(row))
+>>>>>>> 1f3c1f746ac757e98ca34833406fc1e30b48385e
   }
 
   async addProduct(dto: addProductType, image?: Express.Multer.File) {
