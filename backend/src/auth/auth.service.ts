@@ -25,7 +25,7 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterInput) {
-    const { rows: existing } = await this.sql.query<Pick<UserRow, 'id'>>(
+    const { rows: existing } = await this.sql.pool.query<Pick<UserRow, 'id'>>(
       'SELECT id FROM "User" WHERE email = $1',
       [dto.email],
     )
@@ -37,7 +37,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(dto.password, 10)
     const id = randomUUID()
 
-    const { rows } = await this.sql.query<Pick<UserRow, 'id' | 'email'>>(
+    const { rows } = await this.sql.pool.query<Pick<UserRow, 'id' | 'email'>>(
       `INSERT INTO "User" (id, email, password, name, surname, "updatedAt")
        VALUES ($1, $2, $3, $4, $5, NOW())
        RETURNING id, email`,
@@ -51,7 +51,7 @@ export class AuthService {
   }
 
   async login(dto: LoginInput) {
-    const { rows } = await this.sql.query<UserRow>(
+    const { rows } = await this.sql.pool.query<UserRow>(
       'SELECT id, email, password, name, surname FROM "User" WHERE email = $1',
       [dto.email],
     )
@@ -80,7 +80,7 @@ export class AuthService {
   }
 
   async forgotPassword(dto: ForgotPasswordInput) {
-    const { rows } = await this.sql.query<Pick<UserRow, 'id' | 'email'>>(
+    const { rows } = await this.sql.pool.query<Pick<UserRow, 'id' | 'email'>>(
       'SELECT id, email FROM "User" WHERE email = $1',
       [dto.email],
     )
@@ -113,7 +113,7 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10)
 
-    await this.sql.query('UPDATE "User" SET password = $1, "updatedAt" = NOW() WHERE id = $2', [
+    await this.sql.pool.query('UPDATE "User" SET password = $1, "updatedAt" = NOW() WHERE id = $2', [
       hashedPassword,
       payload.sub,
     ])
@@ -124,7 +124,7 @@ export class AuthService {
   }
 
   async me(userId: string) {
-    const { rows } = await this.sql.query<Pick<UserRow, 'id' | 'email' | 'name' | 'surname'>>(
+    const { rows } = await this.sql.pool.query<Pick<UserRow, 'id' | 'email' | 'name' | 'surname'>>(
       'SELECT id, email, name, surname FROM "User" WHERE id = $1',
       [userId],
     )

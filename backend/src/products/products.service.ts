@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { randomUUID } from 'crypto'
 import { SqlService } from '../sql/sql.service'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
-import type { addProductType, editProductInput } from '../../../shared/schemas/product.schema'
+import type { addProductType, editProductInput, Product } from '../../../shared/schemas/product.schema'
 
 type ProductRow = {
   id: string
@@ -13,37 +13,43 @@ type ProductRow = {
   stock: number
   price: number
   categoryId: string
+  stockLevel: Product['stockLevel']
   createdAt: Date
   updatedAt: Date
 }
-type ProductWithCategoryRow = ProductRow & { categoryName: string; categoryCreatedAt: Date }
 
-const PRODUCT_WITH_CATEGORY_SELECT = `
-  SELECT p.id, p.image, p."imagePublicId", p.name, p.description, p.stock, p.price, p."categoryId",
-         p."createdAt", p."updatedAt", c.name AS "categoryName", c."createdAt" AS "categoryCreatedAt"
-  FROM "Product" p
-  JOIN "Category" c ON c.id = p."categoryId"
-`
+type ProductWithCategoryRow = ProductRow & { category: { id: string; name: string; createdAt: string } }
 
 @Injectable()
 export class ProductsService {
   constructor(
     private readonly sql: SqlService,
     private readonly cloudinaryService: CloudinaryService,
-  ) {}
-
-  private toProduct({ categoryName, categoryCreatedAt, ...product }: ProductWithCategoryRow) {
-    return { ...product, category: { id: product.categoryId, name: categoryName, createdAt: categoryCreatedAt } }
-  }
+  ) { }
 
   private async findProductById(id: string) {
-    const { rows } = await this.sql.query<ProductWithCategoryRow>(`${PRODUCT_WITH_CATEGORY_SELECT} WHERE p.id = $1`, [id])
-    return rows[0] ? this.toProduct(rows[0]) : null
+    const { rows } = await this.sql.pool.query<ProductWithCategoryRow>( // {rows} desestructurado desde el query
+      `SELECT p.id, p.image, p."imagePublicId", p.name, p.description, p.stock, p.price, p."categoryId",
+              p."stockLevel", p."createdAt", p."updatedAt",
+              json_build_object('id', c.id, 'name', c.name, 'createdAt', c."createdAt") AS category
+       FROM "Product" p
+       JOIN "Category" c ON c.id = p."categoryId"
+       WHERE p.id = $1`,
+      [id],
+    )
+    return rows[0] ?? null
   }
 
   async getProducts() {
-    const { rows } = await this.sql.query<ProductWithCategoryRow>(`${PRODUCT_WITH_CATEGORY_SELECT} ORDER BY p."createdAt" DESC`)
-    return rows.map((row) => this.toProduct(row))
+    const { rows } = await this.sql.pool.query<ProductWithCategoryRow>(
+      `SELECT p.id, p.image, p."imagePublicId", p.name, p.description, p.stock, p.price, p."categoryId",
+              p."stockLevel", p."createdAt", p."updatedAt",
+              json_build_object('id', c.id, 'name', c.name, 'createdAt', c."createdAt") AS category
+       FROM "Product" p
+       JOIN "Category" c ON c.id = p."categoryId"
+       ORDER BY p."createdAt" DESC`,
+    )
+    return rows
   }
 
   async addProduct(dto: addProductType, image?: Express.Multer.File) {
@@ -54,7 +60,7 @@ export class ProductsService {
     }
 
     const id = randomUUID()
-    await this.sql.query(
+    await this.sql.pool.query(
       `INSERT INTO "Product" (id, name, description, stock, price, "categoryId", image, "imagePublicId", "updatedAt")
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
       [id, dto.name, dto.description, dto.stock, dto.price, dto.categoryId, uploadedImage?.url ?? null, uploadedImage?.publicId ?? null],
@@ -74,7 +80,7 @@ export class ProductsService {
   }
 
   async editProduct(id: string, dto: editProductInput, image?: Express.Multer.File) {
-    const { rows } = await this.sql.query<Pick<ProductRow, 'image' | 'imagePublicId'>>(
+    const { rows } = await this.sql.pool.query<Pick<ProductRow, 'image' | 'imagePublicId'>>(
       'SELECT image, "imagePublicId" FROM "Product" WHERE id = $1',
       [id],
     )
@@ -93,7 +99,7 @@ export class ProductsService {
     const nextImage = uploadedImage?.url ?? existingProduct.image
     const nextImagePublicId = uploadedImage?.publicId ?? existingProduct.imagePublicId
 
-    await this.sql.query(
+    await this.sql.pool.query(
       `UPDATE "Product"
        SET name = $1, description = $2, stock = $3, price = $4, "categoryId" = $5, image = $6, "imagePublicId" = $7, "updatedAt" = NOW()
        WHERE id = $8`,
@@ -116,7 +122,7 @@ export class ProductsService {
       throw new NotFoundException('Producto no encontrado.')
     }
 
-    await this.sql.query('DELETE FROM "Product" WHERE id = $1', [id])
+    await this.sql.pool.query('DELETE FROM "Product" WHERE id = $1', [id])
 
     if (product.imagePublicId) {
       await this.cloudinaryService.deleteImage(product.imagePublicId)

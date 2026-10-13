@@ -10,7 +10,7 @@ export class CustomersService {
   constructor(private readonly sql: SqlService) {}
 
   async getCustomers() {
-    const { rows } = await this.sql.query<CustomerRow & { saleCount: number }>(
+    const { rows } = await this.sql.pool.query<CustomerRow & { saleCount: number }>(
       `SELECT c.id, c.name, c.surname, c.phone, COUNT(s.id)::int AS "saleCount"
        FROM "Customer" c
        LEFT JOIN "Sale" s ON s."customerId" = c.id
@@ -24,7 +24,7 @@ export class CustomersService {
   }
 
   async addCustomer(dto: AddCustomerInput) {
-    const { rows: existing } = await this.sql.query<Pick<CustomerRow, 'id'>>(
+    const { rows: existing } = await this.sql.pool.query<Pick<CustomerRow, 'id'>>(
       'SELECT id FROM "Customer" WHERE phone = $1',
       [dto.phone],
     )
@@ -33,7 +33,7 @@ export class CustomersService {
       throw new BadRequestException('Ya existe un cliente con este teléfono.')
     }
 
-    const { rows } = await this.sql.query<CustomerRow>(
+    const { rows } = await this.sql.pool.query<CustomerRow>(
       'INSERT INTO "Customer" (id, name, surname, phone) VALUES ($1, $2, $3, $4) RETURNING id, name, surname, phone',
       [randomUUID(), dto.name, dto.surname, dto.phone],
     )
@@ -42,7 +42,7 @@ export class CustomersService {
   }
 
   async deleteCustomer(id: string) {
-    const { rows } = await this.sql.query<CustomerRow>(
+    const { rows } = await this.sql.pool.query<CustomerRow>(
       'DELETE FROM "Customer" WHERE id = $1 RETURNING id, name, surname, phone',
       [id],
     )

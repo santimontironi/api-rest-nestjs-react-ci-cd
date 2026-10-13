@@ -2,15 +2,15 @@
 
 > 🚧 **Proyecto en desarrollo activo.** Nace como **trabajo universitario**, con la intención a
 > futuro de convertirlo en un producto real para ofrecer a negocios de la zona (no es un SaaS:
-> cada negocio tendría su propia instancia). Auth completa, rate limiting global, y un catálogo
-> de productos y categorías parcialmente implementado de punta a punta (backend + panel en el
-> frontend, con alta vía modal e imagen en Cloudinary para productos); ventas, reportes y Redis
-> todavía no existen. Ver [Estado](#estado) para el detalle de qué está hecho y qué falta.
+> cada negocio tendría su propia instancia). Auth completa, rate limiting global, y un catálogo de
+> productos y categorías implementado de punta a punta (backend + panel en el frontend, con alta,
+> edición y borrado, e imagen en Cloudinary para productos); ventas y Redis todavía no existen. Ver
+> [Estado](#estado) para el detalle de qué está hecho y qué falta.
 
 Aplicación fullstack de **gestión de inventario con autenticación**, pensada para que un negocio
-lleve su catálogo de productos por categoría, registre ventas (con descuento automático de stock)
-y consulte reportes de esa actividad en un dashboard. El detalle funcional completo vive en
-`.claude/spec.md`; este README documenta el estado real del código.
+lleve su catálogo de productos por categoría y, más adelante, registre ventas (con descuento
+automático de stock). El detalle funcional completo vive en `.claude/spec.md`; este README
+documenta el estado real del código.
 
 El catálogo es **compartido**: la autenticación define *quién* puede operar sobre él, no *qué*
 productos ve cada uno. No hay autorregistro: las cuentas se dan de alta por fuera del panel.
@@ -29,7 +29,8 @@ sistema de gestión a negocios puntuales:
 - **Recuperación de contraseña por email** — con Nodemailer y un token de un solo uso.
 - **Rate limiting** — límite global de peticiones y uno más estricto en los endpoints de
   autenticación, con `@nestjs/throttler`.
-- **PostgreSQL + Prisma** — incluyendo migraciones.
+- **PostgreSQL con SQL puro** — sin ORM: las queries se escriben a mano con `pg` (ver
+  `backend/src/sql/`), por pedido explícito de la cátedra.
 - **Subida de imágenes** — Multer (buffer en memoria) + almacenamiento en Cloudinary.
 - **Validación en las dos puntas** — Zod en ambos lados, tanto de lo que se envía como de lo que
   se recibe, con los esquemas compartidos desde `shared/`.
@@ -38,7 +39,7 @@ sistema de gestión a negocios puntuales:
 Pendientes de incorporar (están en la idea del proyecto, todavía no en el código):
 
 - **Redis** como caché de lecturas frecuentes, invalidada en cada mutación.
-- **Ventas y reportes** — todavía no existen los módulos `sales` ni `reports`.
+- **Ventas** — el módulo `sales` existe pero está scaffoldeado (sin rutas ni lógica).
 
 También sirve como base de referencia repetible para arrancar futuros proyectos fullstack con
 autenticación, validación y CI ya resueltos.
@@ -52,7 +53,7 @@ autenticación, validación y CI ya resueltos.
 | Framework | NestJS 11 |
 | Lenguaje | TypeScript |
 | Base de datos | PostgreSQL |
-| ORM | Prisma |
+| Acceso a datos | SQL puro (`pg`), sin ORM |
 | Autenticación | JWT firmado, transportado en cookie httpOnly |
 | Protección | Rate limiting (`@nestjs/throttler`) |
 | Hash de contraseñas | bcrypt |
@@ -74,6 +75,8 @@ Pendiente: Redis como caché.
 | Validación | Zod |
 | Cliente HTTP | Axios |
 | Ruteo | React Router |
+| Íconos | Bootstrap Icons |
+| Alertas | SweetAlert2 |
 
 ### Global
 
@@ -84,12 +87,14 @@ Husky (`pre-push`) y GitHub Actions para CI.
 ```
 .
 ├── backend/            API REST con NestJS
-│   ├── prisma/         schema.prisma + migraciones
 │   └── src/
 │       ├── auth/       register, login, logout, forgot/reset password, me, guard de sesión
-│       ├── products/   listar y crear (con imagen); faltan detalle, editar, borrar e importación
-│       ├── categories/ crear; faltan listar, detalle, editar y borrar
-│       ├── cloudinary/ CloudinaryService (sube el buffer de la imagen, devuelve la URL)
+│       ├── products/   CRUD completo (listar, detalle, crear, editar, borrar) con imagen
+│       ├── categories/ listar, detalle, crear y borrar (con cascada de sus productos); falta editar
+│       ├── customers/  clientes frecuentes: listar, crear y borrar; faltan detalle y editar
+│       ├── sales/      scaffold vacío (module/controller/service sin rutas ni lógica)
+│       ├── sql/        SqlService (pool de `pg`) + SqlModule, reemplaza al antiguo PrismaService
+│       ├── cloudinary/ CloudinaryService (sube el buffer de la imagen, devuelve la URL; también borra)
 │       ├── config/     configuración de Nodemailer y de Cloudinary
 │       ├── mail/       MailService + plantilla del mail de recuperación
 │       ├── common/     pipes compartidos (validación con Zod)
@@ -97,13 +102,18 @@ Husky (`pre-push`) y GitHub Actions para CI.
 │       └── main.ts
 ├── frontend/           SPA con React + Vite
 │   └── src/
-│       ├── components/ Sidebar, Dashboard (placeholder), Products, Categories, Sales
-│       │               (placeholder), Settings (placeholder), InputProductModal,
-│       │               InputCategoryModal, InputMailModal, Loader, VerifyAuth (guard de rutas)
-│       ├── hooks/      useLogin, useLogout, useMe, useForgotPassword, useResetPassword,
-│       │               useAddProduct, useGetProducts, useAddCategory, useGetCategories
-│       ├── pages/      Login, Home (panel con Sidebar), ChangePassword, ResetPassword
-│       ├── services/   cliente de Axios + auth/product/category.service
+│       ├── components/
+│       │   ├── products/   Products, ProductsTable, ProductDetail, InputProductModal, EditProductModal
+│       │   ├── categories/ Categories, CategoryCard, CategoryDetail, InputCategoryModal
+│       │   ├── customers/  Customers, CustomersTable, InputCustomerModal
+│       │   ├── sales/      Sales (placeholder)
+│       │   ├── auth/       InputMailModal, VerifyAuth (guard de rutas)
+│       │   └── ui/         Sidebar, Settings (toggle de tema claro/oscuro), Loader, GoBack
+│       ├── hooks/       una carpeta con sufijo "Hooks" por entidad (authHooks, productsHooks,
+│       │               categoriesHooks, customersHooks)
+│       ├── pages/       Login, Home (panel con Sidebar), ChangePassword (placeholder), ResetPassword
+│       ├── services/    cliente de Axios + auth/product/category/customer.service
+│       ├── context/     ThemeContext (tema claro/oscuro)
 │       ├── types/
 │       └── App.tsx
 ├── shared/schemas/     esquemas de Zod compartidos entre backend y frontend
@@ -133,19 +143,16 @@ npm install
 npm --prefix backend install
 npm --prefix frontend install
 
-# 2. Variables de entorno: crear backend/.env (ver más abajo)
+# 2. Variables de entorno: crear backend/.env y frontend/.env (ver más abajo)
 
-# 3. Base de datos
-npm --prefix backend exec prisma migrate dev
-npm --prefix backend exec prisma generate
+# 3. Base de datos: crearla y correr las tablas a mano contra Postgres (psql o pgAdmin).
+#    No hay ORM ni migraciones versionadas en el repo: el detalle de columnas, tipos y
+#    relaciones de cada tabla está en .claude/spec.md ("Modelos de base de datos").
 
 # 4. Levantar cada app en una terminal
 npm --prefix backend run start:dev   # http://localhost:3000
 npm --prefix frontend run dev        # http://localhost:5173
 ```
-
-El cliente de Prisma se genera en `backend/generated/prisma` y **no se versiona**: después de
-clonar el repo o de tocar `schema.prisma` hay que correr `prisma generate`.
 
 ## Variables de entorno
 
@@ -176,18 +183,17 @@ CLOUDINARY_API_SECRET="tu-api-secret"
 
 | Variable | Descripción |
 |---|---|
-| `DATABASE_URL` | Cadena de conexión a PostgreSQL. La lee Prisma |
+| `DATABASE_URL` | Cadena de conexión a PostgreSQL, usada por `SqlService` (pool de `pg`) |
 | `EMAIL_USER` | Cuenta de Gmail remitente |
 | `EMAIL_PASS` | **Contraseña de aplicación** de esa cuenta (requiere 2FA activo; la contraseña normal no sirve) |
 | `JWT_SECRET` | Secret con el que se firman los JWT: el de sesión y el de recuperación de contraseña |
 | `FRONTEND_URL` | Base del frontend: arma el link del mail de recuperación y es el `origin` habilitado en CORS |
 | `PORT` | Puerto de la API. Sin ella, `main.ts` cae a `3000` |
 | `NODE_ENV` | `development` / `production`: controla `secure` y `sameSite` de la cookie de sesión |
-| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Credenciales de Cloudinary, usadas por `CloudinaryService` para subir las imágenes de producto |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Credenciales de Cloudinary, usadas por `CloudinaryService` para subir y borrar las imágenes de producto |
 
 Las variables se cargan con `dotenv/config` (importado como primera línea de `backend/src/main.ts`)
-y con `@nestjs/config` registrado global en `AppModule`. Prisma no las carga solo: las toma vía
-`backend/prisma.config.ts`.
+y con `@nestjs/config` registrado global en `AppModule`.
 
 Todavía no está en el `.env` porque el módulo que la usa no existe:
 
@@ -207,19 +213,23 @@ VITE_BACKEND_URL="http://localhost:3000/api"
 
 ## Modelos
 
-La fuente de verdad es `backend/prisma/schema.prisma`. Hoy define cinco modelos, pero **`Sale` y
-`SaleItem` todavía no tienen ningún módulo que los use** — existen en el schema (con sus
-migraciones aplicadas) a la espera de los endpoints de ventas.
+No hay ORM: el esquema se gestiona directamente en Postgres, sin archivo versionado en el repo.
+La fuente de verdad documentada es `.claude/spec.md`. Hoy existen seis tablas, pero **`Sale` y
+`SaleItem` todavía no tienen ningún módulo que los use** — el módulo `sales` está scaffoldeado a
+la espera de sus endpoints.
 
-- **User**: `id`, `email` (único), `password` (hasheada, nunca se devuelve), `name`, `surname`,
-  `createdAt`, `updatedAt`.
-- **Category**: `id`, `name` (único), relación uno a muchos con `Product`.
-- **Product**: `id`, `image` (URL de Cloudinary), `name`, `description`, `stock`, `price`,
-  `categoryId` (relación con `Category`).
-- **Sale**: `id`, `total`, relación uno a muchos con `SaleItem`.
+- **User**: `id`, `email` (único), `password` (hasheada con bcrypt, nunca se devuelve), `name`,
+  `surname`, `createdAt`, `updatedAt`.
+- **Category**: `id`, `name` (único), `createdAt`, relación uno a muchos con `Product`.
+- **Product**: `id`, `image`/`imagePublicId` (Cloudinary, opcionales), `name`, `description`,
+  `stock`, `price`, `categoryId` (relación con `Category`), `createdAt`, `updatedAt`.
+- **Customer**: `id`, `name`, `surname`, `phone`. Solo se cargan clientes frecuentes, no todos los
+  que compran.
+- **Sale**: `id`, `total`, `paymentMethod` (`CASH` | `TRANSFER`), referencia opcional a
+  `Customer` con snapshot de nombre/apellido/teléfono, relación uno a muchos con `SaleItem`.
 - **SaleItem**: línea de una venta — `quantity`, `unitPrice`, `productName` y `categoryName`
   desnormalizados (para conservar el detalle aunque el producto o la categoría cambien o se
-  borren después), más una referencia opcional a `Product` (`onDelete: SetNull`).
+  borren después), más una referencia opcional a `Product`.
 
 ## API
 
@@ -232,54 +242,72 @@ Todas las rutas llevan el prefijo global `/api` (configurado en `main.ts`).
 | `POST` | `/auth/register` | Crea el usuario. No inicia sesión |
 | `POST` | `/auth/login` | Valida credenciales y emite el JWT en una cookie httpOnly (`session_token`) |
 | `POST` | `/auth/logout` | Limpia la cookie de sesión |
-| `POST` | `/auth/forgot-password` | Si el email existe, envía un link de recuperación. Responde igual en ambos casos |
+| `POST` | `/auth/forgot-password` | Si el email existe, envía un link de recuperación |
 | `POST` | `/auth/reset-password/:token` | Actualiza la contraseña si el token es válido. Token inválido, vencido o de otro tipo → `400` |
 | `GET` | `/auth/me` | Devuelve el usuario de la sesión actual (requiere `JwtAuthGuard`) |
-| `PATCH` | `/auth/change-password` | Cambia la contraseña con sesión activa, valida la contraseña actual (requiere `JwtAuthGuard`) |
 
 `POST /auth/register` no tiene pantalla en el frontend a propósito (ver spec): el panel no tiene
-autorregistro, las cuentas se dan de alta por fuera de esa UI.
+autorregistro, las cuentas se dan de alta por fuera de esa UI. `PATCH /auth/change-password`
+todavía **no** está implementado: `ChangePassword.tsx` es un placeholder.
 
-### Productos (`/api/products`) — parcial
+### Productos (`/api/products`) — implementado
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/products` | Lista los productos (requiere `JwtAuthGuard`) |
-| `POST` | `/products` | Crea un producto con imagen (`multipart/form-data`, sube a Cloudinary vía `CloudinaryService`; requiere `JwtAuthGuard`) |
+| `GET` | `/products` | Lista los productos, con su categoría (requiere `JwtAuthGuard`) |
+| `GET` | `/products/:id` | Detalle de un producto |
+| `POST` | `/products` | Crea un producto con imagen (`multipart/form-data`, sube a Cloudinary vía `CloudinaryService`) |
+| `PATCH` | `/products/:id` | Actualiza un producto; la imagen es opcional (si no viene, conserva la que tenía) |
+| `DELETE` | `/products/:id` | Borra el producto y, si tenía imagen propia, también la borra de Cloudinary |
 
-Faltan `GET /products/:id`, `PATCH /products/:id`, `DELETE /products/:id` y
-`POST /products/import` (alta masiva desde Excel), todos especificados en `.claude/spec.md`.
+Falta `POST /products/import` (alta masiva desde Excel), especificado en `.claude/spec.md`.
 
-En el frontend, la sección "Productos" del panel (`components/Products.tsx`) ya lista el
-catálogo (`useGetProducts`) y da de alta productos vía un modal (`InputProductModal.tsx` +
-`useAddProduct`), con imagen incluida. Falta poblar el selector de categoría del formulario con
-datos reales (hoy es un placeholder fijo) y las acciones de editar/borrar.
+En el frontend, la sección "Productos" del panel lista el catálogo, permite dar de alta, editar y
+borrar productos vía modal (`InputProductModal`/`EditProductModal`), y ver el detalle de cada uno
+(`ProductDetail`).
 
 ### Categorías (`/api/categories`) — parcial
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/categories` | Lista las categorías (requiere `JwtAuthGuard`) |
-| `POST` | `/categories` | Crea una categoría (`name`, único). Responde `400` si ya existe una con ese nombre (requiere `JwtAuthGuard`) |
+| `GET` | `/categories` | Lista las categorías, con la cantidad de productos de cada una |
+| `GET` | `/categories/:id` | Detalle de una categoría, con sus productos |
+| `POST` | `/categories` | Crea una categoría (`name`, único). Responde `400` si ya existe una con ese nombre |
+| `DELETE` | `/categories/:id` | Borra la categoría y todos sus productos, en cascada (transacción atómica) |
 
-Faltan `GET /categories/:id`, `PATCH /categories/:id` y `DELETE /categories/:id` (esta última con
-borrado en cascada de sus productos).
+Falta `PATCH /categories/:id` (editar), especificado en `.claude/spec.md`.
 
-En el frontend, la sección "Categorías" del panel (`components/Categories.tsx`) ya lista las
-categorías (`useGetCategories`) y da de alta vía un modal (`InputCategoryModal.tsx` +
-`useAddCategory`). Falta editar/borrar.
+En el frontend, la sección "Categorías" del panel lista las categorías con su conteo de productos
+(`CategoryCard`), permite dar de alta vía modal y ver el detalle de cada una (`CategoryDetail`).
+Falta editar.
 
-### Ventas y reportes — planeado
+### Clientes frecuentes (`/api/customers`) — parcial
 
-Los modelos (`Sale`, `SaleItem`) ya están en el schema, pero no existen los módulos `sales` ni
-`reports` en `backend/src`. Endpoints especificados en `.claude/spec.md`:
-
-| Grupo | Rutas | Qué van a hacer |
+| Método | Ruta | Descripción |
 |---|---|---|
-| Ventas | `GET/POST /sales` | Registrar una venta con una o más líneas; descuenta stock en una transacción atómica |
-| Reportes | `GET /reports/*` (7 endpoints) | Agregaciones de solo lectura para un dashboard: ventas por período/categoría, top productos, stock bajo, etc. |
+| `GET` | `/customers` | Lista los clientes, con la cantidad de ventas de cada uno |
+| `POST` | `/customers` | Da de alta un cliente (`name`, `surname`, `phone`) |
+| `DELETE` | `/customers/:id` | Da de baja (borra) un cliente |
 
-Detalle de cada endpoint, validaciones y reglas de negocio: `.claude/spec.md`.
+Faltan `GET /customers/:id` (detalle, con historial de compras) y `PATCH /customers/:id`
+(editar), especificados en `.claude/spec.md`.
+
+En el frontend, la sección "Clientes frecuentes" del panel lista los clientes (`CustomersTable`)
+y permite dar de alta vía modal (`InputCustomerModal`). Falta detalle y editar.
+
+### Ventas — planeado
+
+El módulo `sales` existe (`sales.module.ts`, `sales.controller.ts`, `sales.service.ts`) pero está
+**scaffoldeado**: sin rutas ni lógica todavía. `Sales.tsx` en el frontend es un placeholder.
+Endpoints especificados en `.claude/spec.md`:
+
+| Rutas | Qué van a hacer |
+|---|---|
+| `GET/POST /sales` | Registrar una venta con una o más líneas; descuenta stock en una transacción atómica |
+
+Detalle de validaciones y reglas de negocio: `.claude/spec.md`. La sección de reportes/dashboard
+que estaba planeada se sacó del alcance del proyecto (no se pide en la consigna universitaria) y
+ya no figura en la spec.
 
 ### Decisiones a tener en cuenta
 
@@ -289,6 +317,9 @@ Detalle de cada endpoint, validaciones y reglas de negocio: `.claude/spec.md`.
   la que impide reutilizar un token de sesión como token de recuperación. No se guarda en la base.
 - La duración del token de sesión **no** es una variable de entorno: va hardcodeada (`1d`) en el
   `signOptions` del `JwtModule`.
+- No hay ORM: cada service arma su SQL a mano y lo ejecuta a través de `SqlService`
+  (`backend/src/sql/`), que solo envuelve un pool de `pg`. Las transacciones (borrado en cascada
+  de categoría, y a futuro el registro de ventas) usan `SqlService.transaction()`.
 
 ## Scripts
 
@@ -323,9 +354,8 @@ frontend.
 **GitHub Actions** (`.github/workflows/ci.yml`) se dispara en los pull requests hacia `master` y
 en los push a `develop`. Dos jobs en paralelo, `backend` y `frontend`, sobre Node 22 con caché de
 npm apuntada a cada `package-lock.json`. Cada uno corre `npm ci` y después los mismos
-`lint:check`, `typecheck` y `build` del hook, así que lo que pasa en local pasa en el CI. El job
-de backend agrega `npx prisma generate` antes de lintear. Hay `concurrency` con
-`cancel-in-progress`: un push nuevo cancela el run anterior de la misma rama.
+`lint:check`, `typecheck` y `build` del hook, así que lo que pasa en local pasa en el CI. Hay
+`concurrency` con `cancel-in-progress`: un push nuevo cancela el run anterior de la misma rama.
 
 Nunca saltear los hooks con `--no-verify`. Si el `pre-push` falla, se arregla la causa.
 
@@ -341,33 +371,36 @@ la mira puesta en convertirlo en un producto que se pueda ofrecer a negocios rea
 
 Hecho:
 
-- Esquema de Prisma (`User`, `Category`, `Product`, `Sale`, `SaleItem`) con sus migraciones,
-  incluyendo `name` único en `Category`.
-- Auth completa: registro, login/logout con cookie httpOnly, recuperación de contraseña
-  (`forgot-password` / `reset-password/:token`), cambio de contraseña con sesión activa
-  (`change-password`) y `me`, con guard de sesión (`JwtAuthGuard`).
+- Esquema de Postgres (`User`, `Category`, `Product`, `Customer`, `Sale`, `SaleItem`) gestionado
+  con SQL puro, sin ORM — por pedido explícito de la cátedra. `Sale`/`SaleItem` existen en la base
+  pero ningún endpoint los usa todavía.
+- Auth: registro, login/logout con cookie httpOnly, recuperación de contraseña
+  (`forgot-password` / `reset-password/:token`) y `me`, con guard de sesión (`JwtAuthGuard`).
+  Falta el cambio de contraseña con sesión activa.
 - Rate limiting: límite global de peticiones y uno más estricto en los endpoints de autenticación
   (`@nestjs/throttler`).
-- Productos: listar y crear, con subida de imagen a Cloudinary (`CloudinaryService`) vía Multer.
-- Categorías: listar y crear, con validación de nombre duplicado.
+- Productos: CRUD completo (listar, detalle, crear, editar, borrar), con subida y borrado de
+  imagen en Cloudinary (`CloudinaryService`) vía Multer.
+- Categorías: listar, detalle, crear y borrar (con cascada sobre sus productos, en transacción).
+  Falta editar.
+- Clientes frecuentes: listar, crear y borrar. Falta detalle y editar.
 - Módulo `mail` con el transporter de Gmail y la plantilla del mail de recuperación de contraseña.
-- Frontend — auth y cuenta: login, logout, `me`, cambio de contraseña y recuperación de
-  contraseña, funcionando contra la API.
-- Frontend — panel: layout con `Sidebar` + secciones (`Home.tsx`). Productos y Categorías ya
-  listan datos reales (`useGetProducts`/`useGetCategories`) y dan de alta vía modal
-  (`InputProductModal`/`InputCategoryModal`), con estados de carga, error y catálogo vacío
-  manejados explícitamente.
+- Frontend — auth y cuenta: login, logout, `me` y recuperación de contraseña, funcionando contra
+  la API.
+- Frontend — panel: layout con `Sidebar` (branding "Vortex PC") + secciones (`Home.tsx`).
+  Productos, Categorías y Clientes frecuentes listan datos reales, dan de alta vía modal, y
+  Productos/Categorías también editan/borran y muestran detalle. Ajustes tiene un toggle de tema
+  claro/oscuro funcional.
 - CI/CD: hook de Husky en `pre-push` y GitHub Actions con los mismos checks.
 
 Pendiente:
 
-- Productos: detalle, editar, borrar e importación masiva desde Excel — tanto el endpoint como
-  la UI. En el modal de alta, el selector de categoría todavía no tiene datos reales.
-- Categorías: detalle, editar y borrar (con cascada sobre sus productos) — tanto el endpoint como
-  la UI.
-- Módulos `sales` y `reports` completos (ver tabla de arriba): sus modelos ya están en el schema,
-  pero ningún endpoint ni pantalla está implementado (`Dashboard.tsx` y `Sales.tsx` son
-  placeholders).
+- Categorías: editar (endpoint + UI).
+- Clientes frecuentes: detalle (con historial de compras) y editar (endpoint + UI).
+- Productos: importación masiva desde Excel (endpoint + UI).
+- Cambio de contraseña con sesión activa (endpoint + UI): `ChangePassword.tsx` es un placeholder.
+- Módulo `sales` completo: está scaffoldeado (`module`/`controller`/`service` sin rutas), sin
+  lógica ni UI (`Sales.tsx` es un placeholder).
 - Redis como caché de productos.
 
 ## Documentación

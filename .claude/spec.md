@@ -108,6 +108,7 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 | `stock` | `Int` | No negativo |
 | `price` | `Float` | No negativo |
 | `categoryId` | `String` | FK a `Category.id`. Obligatoria: todo producto pertenece a una categoría |
+| `stockLevel` | `String` | Semáforo de stock. Columna generada por Postgres (`GENERATED ALWAYS AS ... STORED`), no se escribe desde la app: `low` si `stock <= 5`, `medium` si `stock <= 10`, `high` si es mayor. El frontend lo traduce a rojo / amarillo / verde |
 | `category` | `Category` | `@relation(fields: [categoryId], references: [id])` |
 | `saleItems` | `SaleItem[]` | Lado inverso de la relación con `SaleItem` |
 | `createdAt` | `DateTime` | `@default(now())` |

@@ -1,6 +1,7 @@
 import swal from "../../utils/swal";
 import type { Product } from "../../../../shared/schemas/product.schema";
 import { useDeleteProduct } from "../../hooks/productsHooks/useDeleteProduct";
+import StockLevelDot from "./StockLevelDot";
 
 const ProductsTable = ({
   products,
@@ -103,6 +104,7 @@ const ProductsTable = ({
                   <span className="flex items-center gap-1.5">
                     <i className="bi bi-box-seam" aria-hidden="true" />
                     Stock: {product.stock}
+                    <StockLevelDot level={product.stockLevel} />
                   </span>
                   {!hideCategory && (
                     <span className="flex items-center gap-1.5 truncate">
@@ -207,7 +209,10 @@ const ProductsTable = ({
                     </td>
                   )}
                   <td className="px-4 py-3 text-sm font-medium text-tertiary transition-colors duration-150 group-hover:text-secondary md:px-6">
-                    {product.stock}
+                    <span className="flex items-center gap-2">
+                      {product.stock}
+                      <StockLevelDot level={product.stockLevel} />
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-tertiary/60 transition-colors duration-150 group-hover:text-secondary/70 md:px-6">
                     {product.createdAt.toLocaleDateString("es-AR")}

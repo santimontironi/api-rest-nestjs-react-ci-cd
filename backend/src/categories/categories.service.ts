@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import { SqlService } from '../sql/sql.service'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
 import type { AddCategoryInput } from '../../../shared/schemas/category.schema'
+import type { Product } from '../../../shared/schemas/product.schema'
 
 type CategoryRow = { id: string; name: string; createdAt: Date }
 
@@ -15,6 +16,7 @@ type ProductRow = {
   stock: number
   price: number
   categoryId: string
+  stockLevel: Product['stockLevel']
   createdAt: Date
   updatedAt: Date
 }
@@ -27,7 +29,7 @@ export class CategoriesService {
   ) { }
 
   async getCategories() {
-    const { rows } = await this.sql.query<CategoryRow & { productCount: number }>(
+    const { rows } = await this.sql.pool.query<CategoryRow & { productCount: number }>(
       `SELECT c.id, c.name, c."createdAt", COUNT(p.id)::int AS "productCount"
        FROM "Category" c
        LEFT JOIN "Product" p ON p."categoryId" = c.id
@@ -41,7 +43,7 @@ export class CategoriesService {
   }
 
   async getCategoryById(id: string) {
-    const { rows: categoryRows } = await this.sql.query<CategoryRow>(
+    const { rows: categoryRows } = await this.sql.pool.query<CategoryRow>(
       'SELECT id, name, "createdAt" FROM "Category" WHERE id = $1',
       [id],
     )
@@ -51,8 +53,8 @@ export class CategoriesService {
       throw new NotFoundException('Categoría no encontrada.')
     }
 
-    const { rows: products } = await this.sql.query<ProductRow>(
-      `SELECT id, image, "imagePublicId", name, description, stock, price, "categoryId", "createdAt", "updatedAt"
+    const { rows: products } = await this.sql.pool.query<ProductRow>(
+      `SELECT id, image, "imagePublicId", name, description, stock, price, "categoryId", "stockLevel", "createdAt", "updatedAt"
        FROM "Product"
        WHERE "categoryId" = $1`,
       [id],
@@ -65,7 +67,7 @@ export class CategoriesService {
   }
 
   async newCategory(dto: AddCategoryInput) {
-    const { rows: existing } = await this.sql.query<Pick<CategoryRow, 'id'>>(
+    const { rows: existing } = await this.sql.pool.query<Pick<CategoryRow, 'id'>>(
       'SELECT id FROM "Category" WHERE name = $1',
       [dto.name],
     )
@@ -74,7 +76,7 @@ export class CategoriesService {
       throw new BadRequestException('Esta categoría ya existe.')
     }
 
-    const { rows } = await this.sql.query<CategoryRow>(
+    const { rows } = await this.sql.pool.query<CategoryRow>(
       'INSERT INTO "Category" (id, name) VALUES ($1, $2) RETURNING id, name, "createdAt"',
       [randomUUID(), dto.name],
     )
@@ -83,14 +85,18 @@ export class CategoriesService {
   }
 
   async deleteCategory(id: string) {
-    const { rows: products } = await this.sql.query<Pick<ProductRow, 'imagePublicId'>>(
+    const { rows: products } = await this.sql.pool.query<Pick<ProductRow, 'imagePublicId'>>(
       'SELECT "imagePublicId" FROM "Product" WHERE "categoryId" = $1',
       [id],
     )
 
-    const deletedCategory = await this.sql.transaction(async (query) => {
-      await query('DELETE FROM "Product" WHERE "categoryId" = $1', [id])
-      const { rows } = await query<CategoryRow>(
+    const client = await this.sql.pool.connect()
+    let deletedCategory: CategoryRow
+
+    try {
+      await client.query('BEGIN')
+      await client.query('DELETE FROM "Product" WHERE "categoryId" = $1', [id])
+      const { rows } = await client.query<CategoryRow>(
         'DELETE FROM "Category" WHERE id = $1 RETURNING id, name, "createdAt"',
         [id],
       )
@@ -99,8 +105,14 @@ export class CategoriesService {
         throw new NotFoundException('Categoría no encontrada.')
       }
 
-      return rows[0]
-    })
+      deletedCategory = rows[0]
+      await client.query('COMMIT')
+    } catch (error) {
+      await client.query('ROLLBACK')
+      throw error
+    } finally {
+      client.release()
+    }
 
     for (const product of products) {
       if (product.imagePublicId) {
