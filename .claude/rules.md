@@ -58,6 +58,9 @@ legible, prolijo, mantenible y escalable.
 - **Los controllers no tienen lógica de negocio.** Reciben, delegan al service y devuelven.
 - **Las consultas son SQL puro, sin ORM (nada de Prisma).** Las queries se escriben a mano y solo
   se usan dentro de los services, nunca en un controller.
+- **Cada consulta se escribe completa dentro del método del service que la usa**: nada de
+  constantes con fragmentos de SQL ni de `WHERE` armados concatenando condiciones (para filtros
+  opcionales, `($1::tipo IS NULL OR columna = $1)`). La idea es que el SQL se lea tal cual.
 - Un cliente de `pg` único, inyectado; no instanciar `Pool`/`Client` sueltos.
 - **DTOs con `class-validator`** para toda entrada. `ValidationPipe` global con `whitelist: true`
   y `forbidNonWhitelisted: true`. **Excepción:** si el payload tiene un esquema en `shared/schemas/`,
@@ -138,7 +141,7 @@ backend/src/
   products/
   categories/
   customers/
-  sales/         módulo scaffoldeado (module/controller/service vacíos), lógica de venta pendiente
+  sales/
   mail/          MailService (nodemailer) + plantillas
   cloudinary/    CloudinaryService (subida de imágenes)
   prisma/
@@ -156,7 +159,7 @@ frontend/src/
                  componentes del flujo de autenticación (VerifyAuth,
                  InputMailModal) y ui/ para el resto: componentes genéricos
                  sin dominio propio (Loader, Sidebar) y pantallas que no son
-                 una entidad (Dashboard, Settings)
+                 una entidad (Dashboard)
   hooks/         organizados por dominio: una subcarpeta por entidad con
                  sufijo "Hooks" (categoriesHooks/, productsHooks/, authHooks/),
                  para no confundirse con las subcarpetas de components/

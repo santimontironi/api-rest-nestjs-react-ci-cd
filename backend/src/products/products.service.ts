@@ -18,13 +18,6 @@ type ProductRow = {
 }
 type ProductWithCategoryRow = ProductRow & { categoryName: string; categoryCreatedAt: Date }
 
-const PRODUCT_WITH_CATEGORY_SELECT = `
-  SELECT p.id, p.image, p."imagePublicId", p.name, p.description, p.stock, p.price, p."categoryId",
-         p."createdAt", p."updatedAt", c.name AS "categoryName", c."createdAt" AS "categoryCreatedAt"
-  FROM "Product" p
-  JOIN "Category" c ON c.id = p."categoryId"
-`
-
 @Injectable()
 export class ProductsService {
   constructor(
@@ -37,12 +30,25 @@ export class ProductsService {
   }
 
   private async findProductById(id: string) {
-    const { rows } = await this.sql.query<ProductWithCategoryRow>(`${PRODUCT_WITH_CATEGORY_SELECT} WHERE p.id = $1`, [id])
+    const { rows } = await this.sql.query<ProductWithCategoryRow>(
+      `SELECT p.id, p.image, p."imagePublicId", p.name, p.description, p.stock, p.price, p."categoryId",
+              p."createdAt", p."updatedAt", c.name AS "categoryName", c."createdAt" AS "categoryCreatedAt"
+       FROM "Product" p
+       JOIN "Category" c ON c.id = p."categoryId"
+       WHERE p.id = $1`,
+      [id],
+    )
     return rows[0] ? this.toProduct(rows[0]) : null
   }
 
   async getProducts() {
-    const { rows } = await this.sql.query<ProductWithCategoryRow>(`${PRODUCT_WITH_CATEGORY_SELECT} ORDER BY p."createdAt" DESC`)
+    const { rows } = await this.sql.query<ProductWithCategoryRow>(
+      `SELECT p.id, p.image, p."imagePublicId", p.name, p.description, p.stock, p.price, p."categoryId",
+              p."createdAt", p."updatedAt", c.name AS "categoryName", c."createdAt" AS "categoryCreatedAt"
+       FROM "Product" p
+       JOIN "Category" c ON c.id = p."categoryId"
+       ORDER BY p."createdAt" DESC`,
+    )
     return rows.map((row) => this.toProduct(row))
   }
 

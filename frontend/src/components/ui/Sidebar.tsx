@@ -123,18 +123,6 @@ const Sidebar = ({ activeItem, setActiveItem }: SidebarProps) => {
                             ))}
                         </ul>
                     </div>
-
-                    <div className="mt-auto flex flex-col gap-1 border-t border-tertiary/15 pt-4">
-                        <button
-                            type="button"
-                            onClick={() => selectItem("settings")}
-                            aria-current={activeItem === "settings" ? "page" : undefined}
-                            className={navItemClasses(activeItem === "settings")}
-                        >
-                            <i className="bi bi-sliders w-5 text-center text-base" aria-hidden="true" />
-                            Ajustes
-                        </button>
-                    </div>
                 </nav>
 
                 <div className="flex items-center gap-3 border-t border-tertiary/15 pt-5">

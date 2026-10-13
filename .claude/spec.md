@@ -165,7 +165,7 @@ ejemplo, `POST /auth/register` corresponde en la práctica a `POST /api/auth/reg
 - **Logout** (`POST /auth/logout`): limpia la cookie.
 - **Sesión actual** (`GET /auth/me`): devuelve el usuario autenticado a partir de la cookie.
 - **Cambio de contraseña** (`PATCH /auth/change-password`): protegido, requiere sesión activa.
-  Vive dentro del panel, en la sección de ajustes de cuenta. Ver detalle en la sección siguiente.
+  Vive dentro del panel. Ver detalle en la sección siguiente.
 - **Recuperación de contraseña** (`POST /auth/forgot-password` y
   `POST /auth/reset-password/:token`): para cuando el usuario no recuerda su contraseña y todavía
   no inició sesión. Ver detalle en la sección siguiente.
@@ -267,9 +267,9 @@ sistema; solo se cargan los clientes **frecuentes**, no todos los que compran.
 
 ## Endpoints de ventas
 
-> **Estado actual**: el módulo `sales` está scaffoldeado (`module`/`controller`/`service` vacíos)
-> pero la lógica descripta abajo todavía no está implementada, igual que `Sales.tsx` en el
-> frontend. Esta sección documenta el comportamiento objetivo, no el actual.
+> **Estado actual**: implementados `GET /sales` (con filtros) y `POST /sales`, en backend y frontend
+> (listado con filtros por fecha y cliente, y modal de registro). Falta `GET /sales/:id` y la vista de
+> historial de compras desde un cliente.
 
 Todos requieren autenticación.
 
@@ -279,6 +279,12 @@ Todos requieren autenticación.
 | `GET` | `/sales/:id` | Detalle de una venta con sus líneas |
 | `POST` | `/sales` | Registra una venta con una o más líneas (`productId` + `quantity`), un `paymentMethod` (`CASH` \| `TRANSFER`) y, opcionalmente, un `customerId` |
 
+- Los payloads se validan con los esquemas de `shared/schemas/sale.schema.ts` (`addSaleSchema` para
+  el body de `POST`, `salesFiltersSchema` para el query de `GET`).
+- Filtros de `GET /sales` (query, todos opcionales): `from` y `to` en formato `YYYY-MM-DD`
+  (ambos inclusive: `to` abarca todo ese día) y `customerId`. Se ordena por `createdAt`
+  descendente y cada venta incluye sus `items`.
+- Una venta no puede repetir el mismo `productId` en dos líneas: responde `400`.
 - El `paymentMethod` de una venta es **obligatorio**: `CASH` (efectivo) o `TRANSFER` (transferencia).
 - El `customerId` de una venta es **opcional**: solo se asocia cuando el comprador es un cliente
   frecuente ya dado de alta. Cuando se envía, `customerName`, `customerSurname` y `customerPhone`
@@ -288,9 +294,13 @@ Todos requieren autenticación.
   al hacer click en un cliente desde el frontend, se listan sus ventas reusando este mismo
   endpoint.
 - Al registrar una venta se valida que cada producto tenga **stock suficiente**; si no lo tiene,
-  responde `400` y no se crea la venta ni se descuenta stock de ninguna línea.
+  responde `400` y no se crea la venta ni se descuenta stock de ninguna línea. Un `productId` o
+  `customerId` inexistente responde `404`.
 - La creación de la venta y el descuento de stock de todos los productos involucrados es una
-  **operación atómica** (transacción de Prisma): si falla un paso, no queda nada aplicado.
+  **operación atómica** (`SqlService.transaction`): si falla un paso, no queda nada aplicado. Los
+  productos se leen con `SELECT ... FOR UPDATE` para que dos ventas simultáneas no validen el
+  mismo stock.
+- `POST /sales` responde `201` con la venta creada, incluyendo sus `items`.
 - `unitPrice`, `productName` y `categoryName` de cada línea se toman del producto en el momento de
   la venta, no los envía el cliente. Quedan como snapshot en `SaleItem` y no cambian después,
   aunque el producto se edite o se elimine.
