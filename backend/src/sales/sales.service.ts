@@ -13,7 +13,7 @@ export class SalesService {
   constructor(private readonly sql: SqlService) { }
 
   async getSales(filters: SalesFilters) {
-    const { rows: sales } = await this.sql.query<SaleRow>(
+    const { rows: sales } = await this.sql.pool.query<SaleRow>(
       `SELECT id, total, "paymentMethod", "customerId", "customerName", "customerSurname",
               "customerPhone", "createdAt", "updatedAt"
        FROM "Sale"
@@ -24,7 +24,7 @@ export class SalesService {
       [filters.from ?? null, filters.to ?? null, filters.customerId ?? null],
     )
 
-    const { rows: items } = await this.sql.query<SaleItemRow>(
+    const { rows: items } = await this.sql.pool.query<SaleItemRow>(
       `SELECT id, "saleId", "productId", quantity, "unitPrice", "productName", "categoryName"
        FROM "SaleItem"
        WHERE "saleId" = ANY($1)`,
@@ -35,11 +35,14 @@ export class SalesService {
   }
 
   async addSale(dto: AddSaleInput) {
-    return this.sql.transaction(async (query) => {
+    const client = await this.sql.pool.connect()
+
+    try {
+      await client.query('BEGIN')
       let customer: CustomerRow | undefined
 
       if (dto.customerId) {
-        const { rows } = await query<CustomerRow>(
+        const { rows } = await client.query<CustomerRow>(
           'SELECT id, name, surname, phone FROM "Customer" WHERE id = $1',
           [dto.customerId],
         )
@@ -52,7 +55,7 @@ export class SalesService {
 
       // FOR UPDATE bloquea los productos hasta el COMMIT, así dos ventas simultáneas no pueden
       // validar el mismo stock y dejarlo negativo.
-      const { rows: products } = await query<ProductForSaleRow>(
+      const { rows: products } = await client.query<ProductForSaleRow>(
         `SELECT p.id, p.name, p.stock, p.price, c.name AS "categoryName"
          FROM "Product" p
          JOIN "Category" c ON c.id = p."categoryId"
@@ -78,7 +81,7 @@ export class SalesService {
       const total = lines.reduce((sum, line) => sum + line.product.price * line.quantity, 0)
       const saleId = randomUUID()
 
-      const { rows: saleRows } = await query<SaleRow>(
+      const { rows: saleRows } = await client.query<SaleRow>(
         `INSERT INTO "Sale" (id, total, "paymentMethod", "customerId", "customerName", "customerSurname", "customerPhone", "updatedAt")
          VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
          RETURNING id, total, "paymentMethod", "customerId", "customerName", "customerSurname", "customerPhone", "createdAt", "updatedAt"`,
@@ -88,7 +91,7 @@ export class SalesService {
       const items: SaleItemRow[] = []
 
       for (const { product, quantity } of lines) {
-        const { rows: itemRows } = await query<SaleItemRow>(
+        const { rows: itemRows } = await client.query<SaleItemRow>(
           `INSERT INTO "SaleItem" (id, "saleId", "productId", quantity, "unitPrice", "productName", "categoryName")
            VALUES ($1, $2, $3, $4, $5, $6, $7)
            RETURNING id, "saleId", "productId", quantity, "unitPrice", "productName", "categoryName"`,
@@ -96,10 +99,16 @@ export class SalesService {
         )
         items.push(itemRows[0])
 
-        await query('UPDATE "Product" SET stock = stock - $1, "updatedAt" = NOW() WHERE id = $2', [quantity, product.id])
+        await client.query('UPDATE "Product" SET stock = stock - $1, "updatedAt" = NOW() WHERE id = $2', [quantity, product.id])
       }
 
+      await client.query('COMMIT')
       return { ...saleRows[0], items }
-    })
+    } catch (error) {
+      await client.query('ROLLBACK')
+      throw error
+    } finally {
+      client.release()
+    }
   }
 }
