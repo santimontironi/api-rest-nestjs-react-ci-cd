@@ -4,7 +4,7 @@ const Loader = ({ inline = false }: { inline?: boolean }) => {
 
   const spinner = (
     <FallingLines
-      color={inline ? "#fffacd" : "#b81104"}
+      color={inline ? "currentColor" : "#b81104"}
       width={inline ? "28" : "100"}
       visible={true}
       ariaLabel="falling-lines-loading"

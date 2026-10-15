@@ -19,7 +19,7 @@ export class SalesService {
        FROM "Sale"
        WHERE ($1::date IS NULL OR "createdAt" >= $1::date)
          AND ($2::date IS NULL OR "createdAt" < $2::date + 1)
-         AND ($3::uuid IS NULL OR "customerId" = $3::uuid)
+         AND ($3::text IS NULL OR "customerId" = $3)
        ORDER BY "createdAt" DESC`,
       [filters.from ?? null, filters.to ?? null, filters.customerId ?? null],
     )
