@@ -225,6 +225,10 @@ Todos requieren autenticación y operan sobre el catálogo compartido.
   snapshot (`productName`, `categoryName`, `unitPrice`) y no depende de que el producto siga
   existiendo. Además de borrar el registro, si el producto tenía `imagePublicId` borra también su
   imagen de Cloudinary.
+- La búsqueda de productos por nombre es **solo frontend**: se filtra en tiempo real, sin
+  distinguir mayúsculas, sobre la lista que ya trae `GET /products`. No hay endpoint de búsqueda
+  porque el catálogo completo ya está en caché; si en el futuro `GET /products` se pagina, la
+  búsqueda tiene que pasar al backend.
 
 ## Endpoints de categorías
 
@@ -259,10 +263,11 @@ sistema; solo se cargan los clientes **frecuentes**, no todos los que compran.
 | `GET` | `/customers` | Lista los clientes. Alimenta el selector de cliente del formulario de venta |
 | `GET` | `/customers/:id` | Detalle de un cliente |
 | `POST` | `/customers` | Da de alta un cliente (`name`, `surname`, `phone`) |
-| `PATCH` | `/customers/:id` | Modifica un cliente |
+| `PATCH` | `/customers/:id` | Modifica el teléfono de un cliente (`phone`). Nombre y apellido no se editan |
 | `DELETE` | `/customers/:id` | Da de baja (elimina) un cliente de forma permanente |
 
 - Un `id` inexistente responde `404`.
+- El teléfono es único: si al dar de alta o editar ya lo tiene otro cliente, responde `400`.
 - `DELETE` es un borrado real, no soft delete: es seguro porque `Sale.customerId` queda en `null`
   (`onDelete: SetNull`) sin perder el resto de la información de la venta.
 

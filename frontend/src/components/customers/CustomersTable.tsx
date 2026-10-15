@@ -2,36 +2,44 @@ import swal from "../../utils/swal";
 import type { Customer } from "../../../../shared/schemas/customer.schema";
 import { useDeleteCustomer } from "../../hooks/customersHooks/useDeleteCustomer";
 
-const CustomersTable = ({ customers }: { customers: Customer[] }) => {
+const CustomersTable = ({
+  customers,
+  onEditClick,
+}: {
+  customers: Customer[];
+  onEditClick: (customer: Customer) => void;
+}) => {
   const { mutate: deleteCustomer } = useDeleteCustomer();
 
   const handleDelete = (customer: Customer) => {
-    swal.fire({
-      title: "¿Eliminar cliente?",
-      text: `Se eliminará a "${customer.name} ${customer.surname}". Esta acción no se puede deshacer.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+    swal
+      .fire({
+        title: "¿Eliminar cliente?",
+        text: `Se eliminará a "${customer.name} ${customer.surname}". Esta acción no se puede deshacer.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+      })
+      .then((result) => {
+        if (!result.isConfirmed) return;
 
-      deleteCustomer(customer.id, {
-        onSuccess: () =>
-          swal.fire({
-            title: "Cliente eliminado",
-            icon: "success",
-            timer: 1800,
-            showConfirmButton: false,
-          }),
-        onError: (error) =>
-          swal.fire({
-            title: "No se pudo eliminar",
-            text: error.message,
-            icon: "error",
-          }),
+        deleteCustomer(customer.id, {
+          onSuccess: () =>
+            swal.fire({
+              title: "Cliente eliminado",
+              icon: "success",
+              timer: 1800,
+              showConfirmButton: false,
+            }),
+          onError: (error) =>
+            swal.fire({
+              title: "No se pudo eliminar",
+              text: error.message,
+              icon: "error",
+            }),
+        });
       });
-    });
   };
 
   return (
@@ -52,14 +60,24 @@ const CustomersTable = ({ customers }: { customers: Customer[] }) => {
                   {customer.phone}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => handleDelete(customer)}
-                aria-label={`Eliminar ${customer.name} ${customer.surname}`}
-                className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
-              >
-                <i className="bi bi-trash3 text-sm" aria-hidden="true" />
-              </button>
+              <div className="flex shrink-0 items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => onEditClick(customer)}
+                  aria-label={`Editar ${customer.name} ${customer.surname}`}
+                  className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                >
+                  <i className="bi bi-pencil text-sm" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(customer)}
+                  aria-label={`Eliminar ${customer.name} ${customer.surname}`}
+                  className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                >
+                  <i className="bi bi-trash3 text-sm" aria-hidden="true" />
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center gap-1.5 border-t border-tertiary/10 pt-3 text-xs text-tertiary/60">
@@ -93,7 +111,7 @@ const CustomersTable = ({ customers }: { customers: Customer[] }) => {
                 >
                   Ventas
                 </th>
-                <th scope="col" className="w-14 px-4 py-3 md:px-6">
+                <th scope="col" className="w-28 px-4 py-3 md:px-6">
                   <span className="sr-only">Acciones</span>
                 </th>
               </tr>
@@ -102,7 +120,7 @@ const CustomersTable = ({ customers }: { customers: Customer[] }) => {
               {customers.map((customer) => (
                 <tr
                   key={`row-${customer.id}`}
-                  className="group transition-colors duration-150 hover:bg-gradient-to-r hover:from-primary hover:to-primary-end"
+                  className="group transition-colors duration-150 hover:bg-linear-to-r hover:from-primary hover:to-primary-end"
                 >
                   <td className="px-4 py-3 text-sm font-semibold text-tertiary transition-colors duration-150 group-hover:text-secondary md:px-6 md:text-base">
                     {customer.name} {customer.surname}
@@ -114,14 +132,30 @@ const CustomersTable = ({ customers }: { customers: Customer[] }) => {
                     {customer._count?.sales ?? 0}
                   </td>
                   <td className="px-4 py-3 text-right md:px-6">
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(customer)}
-                      aria-label={`Eliminar ${customer.name} ${customer.surname}`}
-                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 group-hover:text-secondary hover:bg-secondary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
-                    >
-                      <i className="bi bi-trash3 text-base" aria-hidden="true" />
-                    </button>
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        type="button"
+                        onClick={() => onEditClick(customer)}
+                        aria-label={`Editar ${customer.name} ${customer.surname}`}
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 group-hover:text-secondary hover:bg-secondary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                      >
+                        <i
+                          className="bi bi-pencil text-base"
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(customer)}
+                        aria-label={`Eliminar ${customer.name} ${customer.surname}`}
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-tertiary/50 outline-none transition-colors duration-150 group-hover:text-secondary hover:bg-secondary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
+                      >
+                        <i
+                          className="bi bi-trash3 text-base"
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -1,11 +1,14 @@
 import { useState } from "react"
 import InputCustomerModal from "./InputCustomerModal"
+import EditCustomerModal from "./EditCustomerModal"
 import CustomersTable from "./CustomersTable"
 import { useGetCustomers } from "../../hooks/customersHooks/useGetCustomers"
 import Loader from "../ui/Loader"
+import type { Customer } from "../../../../shared/schemas/customer.schema"
 
 const Customers = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const { data: customers, isPending, isError, error } = useGetCustomers()
 
   return (
@@ -32,6 +35,13 @@ const Customers = () => {
 
       {isModalOpen && (
         <InputCustomerModal onClose={() => setIsModalOpen(false)} />
+      )}
+
+      {editingCustomer && (
+        <EditCustomerModal
+          customer={editingCustomer}
+          onClose={() => setEditingCustomer(null)}
+        />
       )}
 
       {customers && customers.length > 0 && (
@@ -69,7 +79,10 @@ const Customers = () => {
       )}
 
       {customers && customers.length > 0 && (
-        <CustomersTable customers={customers} />
+        <CustomersTable
+          customers={customers}
+          onEditClick={(customer) => setEditingCustomer(customer)}
+        />
       )}
     </div>
   )
