@@ -1,18 +1,22 @@
 # nestjs-react-ci-cd
 
-> 🚧 **Proyecto en desarrollo activo.** Nace como **trabajo universitario**, con la intención a
-> futuro de convertirlo en un producto real para ofrecer a negocios de la zona (no es un SaaS:
-> cada negocio tendría su propia instancia). Auth completa, rate limiting global, y un catálogo de
-> productos y categorías implementado de punta a punta (backend + panel en el frontend, con alta,
-> edición y borrado, e imagen en Cloudinary para productos); ventas y Redis todavía no existen. Ver
-> [Estado](#estado) para el detalle de qué está hecho y qué falta.
+## Qué problema resuelve
+
+En muchos negocios, cuando un cliente pregunta por un producto (si hay stock, cuánto cuesta, si
+lo trabajan), el dueño no tiene la respuesta a mano: tiene que revisar el depósito, buscar en
+anotaciones o consultar al proveedor, y el cliente se queda esperando.
+
+Este sistema le da al dueño una interfaz para **gestionar sus productos de forma rápida y
+eficiente**: el catálogo, los precios y el stock están cargados y actualizados en un solo lugar,
+y se encuentran al instante con el buscador. Así puede darle la información al cliente en el
+momento, sin demoras ni consultas de por medio.
 
 Aplicación fullstack de **gestión de inventario con autenticación**, pensada para que un negocio
 lleve su catálogo de productos por categoría y, más adelante, registre ventas (con descuento
 automático de stock). El detalle funcional completo vive en `.claude/spec.md`; este README
 documenta el estado real del código.
 
-El catálogo es **compartido**: la autenticación define *quién* puede operar sobre él, no *qué*
+El catálogo es **compartido**: la autenticación define _quién_ puede operar sobre él, no _qué_
 productos ve cada uno. No hay autorregistro: las cuentas se dan de alta por fuera del panel.
 
 ## Es un proyecto universitario, con mirada a producto real
@@ -36,11 +40,6 @@ sistema de gestión a negocios puntuales:
   se recibe, con los esquemas compartidos desde `shared/`.
 - **Estado de servidor con TanStack Query** — caché, invalidación y estados de carga y error.
 
-Pendientes de incorporar (están en la idea del proyecto, todavía no en el código):
-
-- **Redis** como caché de lecturas frecuentes, invalidada en cada mutación.
-- **Ventas** — el módulo `sales` existe pero está scaffoldeado (sin rutas ni lógica).
-
 También sirve como base de referencia repetible para arrancar futuros proyectos fullstack con
 autenticación, validación y CI ya resueltos.
 
@@ -48,35 +47,33 @@ autenticación, validación y CI ya resueltos.
 
 ### Backend (`backend/`)
 
-| Área | Tecnología |
-|---|---|
-| Framework | NestJS 11 |
-| Lenguaje | TypeScript |
-| Base de datos | PostgreSQL |
-| Acceso a datos | SQL puro (`pg`), sin ORM |
-| Autenticación | JWT firmado, transportado en cookie httpOnly |
-| Protección | Rate limiting (`@nestjs/throttler`) |
-| Hash de contraseñas | bcrypt |
-| Envío de emails | Nodemailer (servicio `gmail`) |
-| Carga de archivos | Multer (`@nestjs/platform-express`) |
-| Almacenamiento de imágenes | Cloudinary |
-
-Pendiente: Redis como caché.
+| Área                       | Tecnología                                   |
+| -------------------------- | -------------------------------------------- |
+| Framework                  | NestJS 11                                    |
+| Lenguaje                   | TypeScript                                   |
+| Base de datos              | PostgreSQL                                   |
+| Acceso a datos             | SQL puro (`pg`), sin ORM                     |
+| Autenticación              | JWT firmado, transportado en cookie httpOnly |
+| Protección                 | Rate limiting (`@nestjs/throttler`)          |
+| Hash de contraseñas        | bcrypt                                       |
+| Envío de emails            | Nodemailer (servicio `gmail`)                |
+| Carga de archivos          | Multer (`@nestjs/platform-express`)          |
+| Almacenamiento de imágenes | Cloudinary                                   |
 
 ### Frontend (`frontend/`)
 
-| Área | Tecnología |
-|---|---|
-| Librería | React 19 + TypeScript |
-| Build | Vite |
-| Estilos | Tailwind CSS v4 |
-| Estado de servidor | TanStack Query |
-| Formularios | React Hook Form |
-| Validación | Zod |
-| Cliente HTTP | Axios |
-| Ruteo | React Router |
-| Íconos | Bootstrap Icons |
-| Alertas | SweetAlert2 |
+| Área               | Tecnología            |
+| ------------------ | --------------------- |
+| Librería           | React 19 + TypeScript |
+| Build              | Vite                  |
+| Estilos            | Tailwind CSS v4       |
+| Estado de servidor | TanStack Query        |
+| Formularios        | React Hook Form       |
+| Validación         | Zod                   |
+| Cliente HTTP       | Axios                 |
+| Ruteo              | React Router          |
+| Íconos             | Bootstrap Icons       |
+| Alertas            | SweetAlert2           |
 
 ### Global
 
@@ -181,15 +178,15 @@ CLOUDINARY_API_KEY="tu-api-key"
 CLOUDINARY_API_SECRET="tu-api-secret"
 ```
 
-| Variable | Descripción |
-|---|---|
-| `DATABASE_URL` | Cadena de conexión a PostgreSQL, usada por `SqlService` (pool de `pg`) |
-| `EMAIL_USER` | Cuenta de Gmail remitente |
-| `EMAIL_PASS` | **Contraseña de aplicación** de esa cuenta (requiere 2FA activo; la contraseña normal no sirve) |
-| `JWT_SECRET` | Secret con el que se firman los JWT: el de sesión y el de recuperación de contraseña |
-| `FRONTEND_URL` | Base del frontend: arma el link del mail de recuperación y es el `origin` habilitado en CORS |
-| `PORT` | Puerto de la API. Sin ella, `main.ts` cae a `3000` |
-| `NODE_ENV` | `development` / `production`: controla `secure` y `sameSite` de la cookie de sesión |
+| Variable                                                               | Descripción                                                                                             |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                                         | Cadena de conexión a PostgreSQL, usada por `SqlService` (pool de `pg`)                                  |
+| `EMAIL_USER`                                                           | Cuenta de Gmail remitente                                                                               |
+| `EMAIL_PASS`                                                           | **Contraseña de aplicación** de esa cuenta (requiere 2FA activo; la contraseña normal no sirve)         |
+| `JWT_SECRET`                                                           | Secret con el que se firman los JWT: el de sesión y el de recuperación de contraseña                    |
+| `FRONTEND_URL`                                                         | Base del frontend: arma el link del mail de recuperación y es el `origin` habilitado en CORS            |
+| `PORT`                                                                 | Puerto de la API. Sin ella, `main.ts` cae a `3000`                                                      |
+| `NODE_ENV`                                                             | `development` / `production`: controla `secure` y `sameSite` de la cookie de sesión                     |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Credenciales de Cloudinary, usadas por `CloudinaryService` para subir y borrar las imágenes de producto |
 
 Las variables se cargan con `dotenv/config` (importado como primera línea de `backend/src/main.ts`)
@@ -197,8 +194,8 @@ y con `@nestjs/config` registrado global en `AppModule`.
 
 Todavía no está en el `.env` porque el módulo que la usa no existe:
 
-| Variable | Para qué |
-|---|---|
+| Variable    | Para qué                                                   |
+| ----------- | ---------------------------------------------------------- |
 | `REDIS_URL` | Cadena de conexión a Redis (caché de productos, pendiente) |
 
 ### `frontend/.env`
@@ -207,8 +204,8 @@ Todavía no está en el `.env` porque el módulo que la usa no existe:
 VITE_BACKEND_URL="http://localhost:3000/api"
 ```
 
-| Variable | Descripción |
-|---|---|
+| Variable           | Descripción                                                                                                      |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
 | `VITE_BACKEND_URL` | Base URL de la API, usada por la instancia de Axios en `frontend/src/services/api.ts`. Incluye el prefijo `/api` |
 
 ## Modelos
@@ -237,14 +234,14 @@ Todas las rutas llevan el prefijo global `/api` (configurado en `main.ts`).
 
 ### Autenticación (`/api/auth`) — implementado
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| `POST` | `/auth/register` | Crea el usuario. No inicia sesión |
-| `POST` | `/auth/login` | Valida credenciales y emite el JWT en una cookie httpOnly (`session_token`) |
-| `POST` | `/auth/logout` | Limpia la cookie de sesión |
-| `POST` | `/auth/forgot-password` | Si el email existe, envía un link de recuperación |
+| Método | Ruta                          | Descripción                                                                                   |
+| ------ | ----------------------------- | --------------------------------------------------------------------------------------------- |
+| `POST` | `/auth/register`              | Crea el usuario. No inicia sesión                                                             |
+| `POST` | `/auth/login`                 | Valida credenciales y emite el JWT en una cookie httpOnly (`session_token`)                   |
+| `POST` | `/auth/logout`                | Limpia la cookie de sesión                                                                    |
+| `POST` | `/auth/forgot-password`       | Si el email existe, envía un link de recuperación                                             |
 | `POST` | `/auth/reset-password/:token` | Actualiza la contraseña si el token es válido. Token inválido, vencido o de otro tipo → `400` |
-| `GET` | `/auth/me` | Devuelve el usuario de la sesión actual (requiere `JwtAuthGuard`) |
+| `GET`  | `/auth/me`                    | Devuelve el usuario de la sesión actual (requiere `JwtAuthGuard`)                             |
 
 `POST /auth/register` no tiene pantalla en el frontend a propósito (ver spec): el panel no tiene
 autorregistro, las cuentas se dan de alta por fuera de esa UI. `PATCH /auth/change-password`
@@ -252,13 +249,13 @@ todavía **no** está implementado: `ChangePassword.tsx` es un placeholder.
 
 ### Productos (`/api/products`) — implementado
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| `GET` | `/products` | Lista los productos, con su categoría (requiere `JwtAuthGuard`) |
-| `GET` | `/products/:id` | Detalle de un producto |
-| `POST` | `/products` | Crea un producto con imagen (`multipart/form-data`, sube a Cloudinary vía `CloudinaryService`) |
-| `PATCH` | `/products/:id` | Actualiza un producto; la imagen es opcional (si no viene, conserva la que tenía) |
-| `DELETE` | `/products/:id` | Borra el producto y, si tenía imagen propia, también la borra de Cloudinary |
+| Método   | Ruta            | Descripción                                                                                    |
+| -------- | --------------- | ---------------------------------------------------------------------------------------------- |
+| `GET`    | `/products`     | Lista los productos, con su categoría (requiere `JwtAuthGuard`)                                |
+| `GET`    | `/products/:id` | Detalle de un producto                                                                         |
+| `POST`   | `/products`     | Crea un producto con imagen (`multipart/form-data`, sube a Cloudinary vía `CloudinaryService`) |
+| `PATCH`  | `/products/:id` | Actualiza un producto; la imagen es opcional (si no viene, conserva la que tenía)              |
+| `DELETE` | `/products/:id` | Borra el producto y, si tenía imagen propia, también la borra de Cloudinary                    |
 
 Falta `POST /products/import` (alta masiva desde Excel), especificado en `.claude/spec.md`.
 
@@ -268,12 +265,12 @@ borrar productos vía modal (`InputProductModal`/`EditProductModal`), y ver el d
 
 ### Categorías (`/api/categories`) — parcial
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| `GET` | `/categories` | Lista las categorías, con la cantidad de productos de cada una |
-| `GET` | `/categories/:id` | Detalle de una categoría, con sus productos |
-| `POST` | `/categories` | Crea una categoría (`name`, único). Responde `400` si ya existe una con ese nombre |
-| `DELETE` | `/categories/:id` | Borra la categoría y todos sus productos, en cascada (transacción atómica) |
+| Método   | Ruta              | Descripción                                                                        |
+| -------- | ----------------- | ---------------------------------------------------------------------------------- |
+| `GET`    | `/categories`     | Lista las categorías, con la cantidad de productos de cada una                     |
+| `GET`    | `/categories/:id` | Detalle de una categoría, con sus productos                                        |
+| `POST`   | `/categories`     | Crea una categoría (`name`, único). Responde `400` si ya existe una con ese nombre |
+| `DELETE` | `/categories/:id` | Borra la categoría y todos sus productos, en cascada (transacción atómica)         |
 
 Falta `PATCH /categories/:id` (editar), especificado en `.claude/spec.md`.
 
@@ -283,11 +280,11 @@ Falta editar.
 
 ### Clientes frecuentes (`/api/customers`) — parcial
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| `GET` | `/customers` | Lista los clientes, con la cantidad de ventas de cada uno |
-| `POST` | `/customers` | Da de alta un cliente (`name`, `surname`, `phone`) |
-| `DELETE` | `/customers/:id` | Da de baja (borra) un cliente |
+| Método   | Ruta             | Descripción                                               |
+| -------- | ---------------- | --------------------------------------------------------- |
+| `GET`    | `/customers`     | Lista los clientes, con la cantidad de ventas de cada uno |
+| `POST`   | `/customers`     | Da de alta un cliente (`name`, `surname`, `phone`)        |
+| `DELETE` | `/customers/:id` | Da de baja (borra) un cliente                             |
 
 Faltan `GET /customers/:id` (detalle, con historial de compras) y `PATCH /customers/:id`
 (editar), especificados en `.claude/spec.md`.
@@ -301,8 +298,8 @@ El módulo `sales` existe (`sales.module.ts`, `sales.controller.ts`, `sales.serv
 **scaffoldeado**: sin rutas ni lógica todavía. `Sales.tsx` en el frontend es un placeholder.
 Endpoints especificados en `.claude/spec.md`:
 
-| Rutas | Qué van a hacer |
-|---|---|
+| Rutas             | Qué van a hacer                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------ |
 | `GET/POST /sales` | Registrar una venta con una o más líneas; descuenta stock en una transacción atómica |
 
 Detalle de validaciones y reglas de negocio: `.claude/spec.md`. La sección de reportes/dashboard
@@ -325,22 +322,22 @@ ya no figura en la spec.
 
 Desde la raíz, para las dos apps en orden (backend y después frontend):
 
-| Script | Qué hace |
-|---|---|
-| `npm run lint:check` | Lintea sin corregir |
-| `npm run typecheck` | Chequeo de tipos sin emitir |
-| `npm run build` | Compila ambas apps |
+| Script               | Qué hace                    |
+| -------------------- | --------------------------- |
+| `npm run lint:check` | Lintea sin corregir         |
+| `npm run typecheck`  | Chequeo de tipos sin emitir |
+| `npm run build`      | Compila ambas apps          |
 
 Por app:
 
-| App | Script | Qué hace |
-|---|---|---|
-| backend | `start:dev` | Levanta la API en modo watch |
-| backend | `lint` | Lintea **corrigiendo** (`--fix`) |
-| backend | `test`, `test:e2e` | Jest |
-| frontend | `dev` | Levanta Vite |
-| frontend | `preview` | Sirve el build |
-| frontend | `lint` | Lintea sin `--max-warnings 0` |
+| App      | Script             | Qué hace                         |
+| -------- | ------------------ | -------------------------------- |
+| backend  | `start:dev`        | Levanta la API en modo watch     |
+| backend  | `lint`             | Lintea **corrigiendo** (`--fix`) |
+| backend  | `test`, `test:e2e` | Jest                             |
+| frontend | `dev`              | Levanta Vite                     |
+| frontend | `preview`          | Sirve el build                   |
+| frontend | `lint`             | Lintea sin `--max-warnings 0`    |
 
 `lint:check` nunca lleva `--fix`: valida, no corrige. Para corregir está `lint`, que se corre a
 mano.

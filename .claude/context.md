@@ -51,7 +51,11 @@ Concretamente, se busca aprender/integrar:
 ## Qué problema resuelve
 
 Para el usuario final (un negocio local que lo adopte), resuelve tener un lugar privado y
-confiable donde registrar y consultar sus productos.
+confiable donde registrar y consultar sus productos. Hoy, cuando un cliente pregunta por un
+producto (stock, precio, si lo trabajan), el dueño suele no tener la respuesta a mano y demora
+revisando el depósito, sus anotaciones o consultando a proveedores. Con el catálogo, los precios
+y el stock cargados en una interfaz rápida (con buscador), puede darle la información al cliente
+en el momento.
 
 Para quien lo desarrolla, resuelve además algo más importante: sirve como base de referencia
 repetible para arrancar futuros proyectos fullstack con autenticación, validación y CI ya
