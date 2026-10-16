@@ -6,10 +6,13 @@ export const addCustomerSchema = z.object({
   phone: z.string().min(1, "El teléfono es obligatorio"),
 });
 
+export const editCustomerSchema = addCustomerSchema.pick({ phone: true });
+
 export const customerSchema = addCustomerSchema.extend({
   id: z.string().uuid("El ID no es válido"),
   _count: z.object({ sales: z.number() }).optional(),
 });
 
 export type AddCustomerInput = z.infer<typeof addCustomerSchema>;
-export type Customer = z.infer<typeof customerSchema>;
+export type EditCustomerInput = z.infer<typeof editCustomerSchema>;
+export type Customer =z.infer<typeof customerSchema>;

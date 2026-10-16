@@ -9,6 +9,7 @@ export const productSchema = z.object({
   price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
   stock: z.number().min(0, "El stock debe ser mayor o igual a 0"),
   categoryId: z.string().uuid("El ID de la categoría no es válido"),
+  stockLevel: z.enum(["low", "medium", "high"]),
   category: categorySchema,
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

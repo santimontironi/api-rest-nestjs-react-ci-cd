@@ -11,7 +11,12 @@ const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+  const [search, setSearch] = useState("")
   const { data: products, isPending, isError, error } = useGetProducts()
+
+  const filteredProducts = products?.filter((product) =>
+    product.name.toLowerCase().includes(search.trim().toLowerCase()),
+  )
 
   if (selectedProductId) {
     return (
@@ -74,6 +79,8 @@ const Products = () => {
             <input
               type="text"
               placeholder="Buscar producto..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
               className="h-12 w-full rounded-xl border-2 border-primary/30 bg-secondary pl-11 pr-4 text-base text-tertiary shadow-[0_10px_30px_-15px] shadow-primary/40 outline-none placeholder:text-tertiary/40 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
             />
           </div>
@@ -108,9 +115,17 @@ const Products = () => {
         </div>
       )}
 
-      {products && products.length > 0 && (
+      {products && products.length > 0 && filteredProducts?.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-tertiary/15 bg-tertiary/5 px-6 py-16 text-center">
+          <p className="text-sm text-tertiary/60">
+            No hay productos que coincidan con "<span className="font-semibold text-tertiary">{search.trim()}</span>".
+          </p>
+        </div>
+      )}
+
+      {filteredProducts && filteredProducts.length > 0 && (
         <ProductsTable
-          products={products}
+          products={filteredProducts}
           onProductClick={(product) => setSelectedProductId(product.id)}
           onEditClick={(product) => setEditingProduct(product)}
         />

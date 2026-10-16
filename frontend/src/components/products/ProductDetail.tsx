@@ -1,6 +1,7 @@
 import { useProductById } from "../../hooks/productsHooks/useProductById";
 import Loader from "../ui/Loader";
 import GoBack from "../ui/GoBack";
+import StockLevelDot from "./StockLevelDot";
 
 const ProductDetail = ({ productId, onBack, hideCategory }: {
   productId: string;
@@ -84,6 +85,7 @@ const ProductDetail = ({ productId, onBack, hideCategory }: {
               <span className="flex items-center gap-1.5">
                 <i className="bi bi-box-seam" aria-hidden="true" />
                 Stock: <span className="font-semibold text-tertiary">{product.stock}</span>
+                <StockLevelDot level={product.stockLevel} />
               </span>
               <span className="flex items-center gap-1.5">
                 <i className="bi bi-calendar3" aria-hidden="true" />

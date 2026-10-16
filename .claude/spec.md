@@ -9,7 +9,7 @@
 | Framework | NestJS 11 |
 | Lenguaje | TypeScript |
 | Base de datos | PostgreSQL |
-| ORM | Prisma |
+| Acceso a datos | SQL puro (`pg`), sin ORM |
 | Caché | Redis |
 | Autenticación | JWT firmado, transportado en cookie httpOnly |
 | Protección | Rate limiting (`@nestjs/throttler`) |
@@ -108,6 +108,7 @@ Fuente de verdad: `backend/prisma/schema.prisma`.
 | `stock` | `Int` | No negativo |
 | `price` | `Float` | No negativo |
 | `categoryId` | `String` | FK a `Category.id`. Obligatoria: todo producto pertenece a una categoría |
+| `stockLevel` | `String` | Semáforo de stock. Columna generada por Postgres (`GENERATED ALWAYS AS ... STORED`), no se escribe desde la app: `low` si `stock <= 5`, `medium` si `stock <= 10`, `high` si es mayor. El frontend lo traduce a rojo / amarillo / verde |
 | `category` | `Category` | `@relation(fields: [categoryId], references: [id])` |
 | `saleItems` | `SaleItem[]` | Lado inverso de la relación con `SaleItem` |
 | `createdAt` | `DateTime` | `@default(now())` |
@@ -165,7 +166,7 @@ ejemplo, `POST /auth/register` corresponde en la práctica a `POST /api/auth/reg
 - **Logout** (`POST /auth/logout`): limpia la cookie.
 - **Sesión actual** (`GET /auth/me`): devuelve el usuario autenticado a partir de la cookie.
 - **Cambio de contraseña** (`PATCH /auth/change-password`): protegido, requiere sesión activa.
-  Vive dentro del panel, en la sección de ajustes de cuenta. Ver detalle en la sección siguiente.
+  Vive dentro del panel. Ver detalle en la sección siguiente.
 - **Recuperación de contraseña** (`POST /auth/forgot-password` y
   `POST /auth/reset-password/:token`): para cuando el usuario no recuerda su contraseña y todavía
   no inició sesión. Ver detalle en la sección siguiente.
@@ -224,6 +225,10 @@ Todos requieren autenticación y operan sobre el catálogo compartido.
   snapshot (`productName`, `categoryName`, `unitPrice`) y no depende de que el producto siga
   existiendo. Además de borrar el registro, si el producto tenía `imagePublicId` borra también su
   imagen de Cloudinary.
+- La búsqueda de productos por nombre es **solo frontend**: se filtra en tiempo real, sin
+  distinguir mayúsculas, sobre la lista que ya trae `GET /products`. No hay endpoint de búsqueda
+  porque el catálogo completo ya está en caché; si en el futuro `GET /products` se pagina, la
+  búsqueda tiene que pasar al backend.
 
 ## Endpoints de categorías
 
@@ -258,18 +263,19 @@ sistema; solo se cargan los clientes **frecuentes**, no todos los que compran.
 | `GET` | `/customers` | Lista los clientes. Alimenta el selector de cliente del formulario de venta |
 | `GET` | `/customers/:id` | Detalle de un cliente |
 | `POST` | `/customers` | Da de alta un cliente (`name`, `surname`, `phone`) |
-| `PATCH` | `/customers/:id` | Modifica un cliente |
+| `PATCH` | `/customers/:id` | Modifica el teléfono de un cliente (`phone`). Nombre y apellido no se editan |
 | `DELETE` | `/customers/:id` | Da de baja (elimina) un cliente de forma permanente |
 
 - Un `id` inexistente responde `404`.
+- El teléfono es único: si al dar de alta o editar ya lo tiene otro cliente, responde `400`.
 - `DELETE` es un borrado real, no soft delete: es seguro porque `Sale.customerId` queda en `null`
   (`onDelete: SetNull`) sin perder el resto de la información de la venta.
 
 ## Endpoints de ventas
 
-> **Estado actual**: el módulo `sales` está scaffoldeado (`module`/`controller`/`service` vacíos)
-> pero la lógica descripta abajo todavía no está implementada, igual que `Sales.tsx` en el
-> frontend. Esta sección documenta el comportamiento objetivo, no el actual.
+> **Estado actual**: implementados `GET /sales` (con filtros) y `POST /sales`, en backend y frontend
+> (listado con filtros por fecha y cliente, y modal de registro). Falta `GET /sales/:id` y la vista de
+> historial de compras desde un cliente.
 
 Todos requieren autenticación.
 
@@ -279,6 +285,12 @@ Todos requieren autenticación.
 | `GET` | `/sales/:id` | Detalle de una venta con sus líneas |
 | `POST` | `/sales` | Registra una venta con una o más líneas (`productId` + `quantity`), un `paymentMethod` (`CASH` \| `TRANSFER`) y, opcionalmente, un `customerId` |
 
+- Los payloads se validan con los esquemas de `shared/schemas/sale.schema.ts` (`addSaleSchema` para
+  el body de `POST`, `salesFiltersSchema` para el query de `GET`).
+- Filtros de `GET /sales` (query, todos opcionales): `from` y `to` en formato `YYYY-MM-DD`
+  (ambos inclusive: `to` abarca todo ese día) y `customerId`. Se ordena por `createdAt`
+  descendente y cada venta incluye sus `items`.
+- Una venta no puede repetir el mismo `productId` en dos líneas: responde `400`.
 - El `paymentMethod` de una venta es **obligatorio**: `CASH` (efectivo) o `TRANSFER` (transferencia).
 - El `customerId` de una venta es **opcional**: solo se asocia cuando el comprador es un cliente
   frecuente ya dado de alta. Cuando se envía, `customerName`, `customerSurname` y `customerPhone`
@@ -288,62 +300,17 @@ Todos requieren autenticación.
   al hacer click en un cliente desde el frontend, se listan sus ventas reusando este mismo
   endpoint.
 - Al registrar una venta se valida que cada producto tenga **stock suficiente**; si no lo tiene,
-  responde `400` y no se crea la venta ni se descuenta stock de ninguna línea.
+  responde `400` y no se crea la venta ni se descuenta stock de ninguna línea. Un `productId` o
+  `customerId` inexistente responde `404`.
 - La creación de la venta y el descuento de stock de todos los productos involucrados es una
-  **operación atómica** (transacción de Prisma): si falla un paso, no queda nada aplicado.
+  **operación atómica** (`SqlService.transaction`): si falla un paso, no queda nada aplicado. Los
+  productos se leen con `SELECT ... FOR UPDATE` para que dos ventas simultáneas no validen el
+  mismo stock.
+- `POST /sales` responde `201` con la venta creada, incluyendo sus `items`.
 - `unitPrice`, `productName` y `categoryName` de cada línea se toman del producto en el momento de
   la venta, no los envía el cliente. Quedan como snapshot en `SaleItem` y no cambian después,
   aunque el producto se edite o se elimine.
 - Un `id` inexistente responde `404`.
-
-## Reportes y dashboard
-
-> **Estado actual**: no implementado todavía. No existe módulo `reports` en el backend y
-> `Dashboard.tsx` en el frontend es un placeholder. Esta sección documenta el comportamiento
-> objetivo, no el actual.
-
-Sección de solo lectura sobre los datos de ventas y catálogo, pensada para que el negocio vea
-su actividad de un vistazo. **No hay un selector general de mes/año que dispare actualizaciones
-en tiempo real de todo el dashboard**: cada reporte se calcula sobre todo el histórico. La única
-excepción es el gráfico de ventas por mes, que trae su propio **selector de año** (independiente
-del resto) para elegir qué año mostrar.
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| `GET` | `/reports/sales-trend` | Total de ventas agregado por mes, filtrable por `year` |
-| `GET` | `/reports/top-products` | Top 10 productos más vendidos, histórico, ordenado por cantidad |
-| `GET` | `/reports/sales-by-category` | Categorías más vendidas históricas, en % sobre cantidad de ventas (no sobre monto) |
-| `GET` | `/reports/top-customers` | Top 10 clientes con más compras, histórico, ordenado por cantidad de compras |
-| `GET` | `/reports/stock-by-category` | Stock actual agrupado por categoría |
-| `GET` | `/reports/low-stock` | Productos con stock por debajo de un umbral (`threshold`) |
-
-El frontend consume estos endpoints para armar un **dashboard** con:
-
-- **Barras**:
-  - Ventas por mes (`/reports/sales-trend`): las 12 barras (una por mes) del año elegido en su
-    selector de año.
-  - Stock actual por categoría (`/reports/stock-by-category`).
-- **Torta/dona**:
-  - Categorías más vendidas históricas (`/reports/sales-by-category`): cantidad de ventas por
-    categoría, expresada en % sobre el total histórico (no sobre monto).
-- **Listados** (no son gráfico):
-  - Top 10 productos más vendidos (`/reports/top-products`).
-  - Top 10 clientes con más compras (`/reports/top-customers`).
-- **Alertas / mensajes** (no es gráfico):
-  - Stock bajo (`/reports/low-stock`): listado de mensajes, color **rojo** si el stock es
-    **≤ 5 unidades**, color **amarillo** si es **≤ 10 unidades**.
-
-- `/reports/sales-trend`, `/reports/sales-by-category` y `/reports/top-products` agrupan usando
-  `productName`/`categoryName`/`unitPrice` de `SaleItem` (snapshot), no hacen join a
-  `Product`/`Category`: siguen siendo precisos aunque el producto o la categoría se hayan editado
-  o eliminado después de la venta. `/reports/stock-by-category` y `/reports/low-stock` sí reflejan
-  el catálogo **actual** (`Product`/`Category`), porque son fotos del estado presente, no del
-  histórico de ventas.
-- `/reports/top-customers` agrupa por `customerId`, usando `customerName`/`customerSurname` de
-  `Sale` (snapshot) para mostrar el nombre; las ventas sin `customerId` (sin cliente asociado) no
-  entran en este reporte.
-- Estos endpoints, al ser de solo lectura y agregación, no participan del caché de Redis de
-  productos (ver sección Redis).
 
 ## Imágenes de productos
 

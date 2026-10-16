@@ -1,11 +1,14 @@
 import { useState } from "react"
 import InputCustomerModal from "./InputCustomerModal"
+import EditCustomerModal from "./EditCustomerModal"
 import CustomersTable from "./CustomersTable"
 import { useGetCustomers } from "../../hooks/customersHooks/useGetCustomers"
 import Loader from "../ui/Loader"
+import type { Customer } from "../../../../shared/schemas/customer.schema"
 
 const Customers = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const { data: customers, isPending, isError, error } = useGetCustomers()
 
   return (
@@ -34,21 +37,17 @@ const Customers = () => {
         <InputCustomerModal onClose={() => setIsModalOpen(false)} />
       )}
 
-      {customers && customers.length > 0 && (
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm text-tertiary/50">
-            Total de clientes: <span className="font-semibold text-tertiary/80">{customers.length}</span>
-          </p>
+      {editingCustomer && (
+        <EditCustomerModal
+          customer={editingCustomer}
+          onClose={() => setEditingCustomer(null)}
+        />
+      )}
 
-          <div className="relative w-full md:w-96">
-            <i className="bi bi-search absolute top-1/2 left-4 -translate-y-1/2 text-base text-primary" aria-hidden="true" />
-            <input
-              type="text"
-              placeholder="Buscar cliente..."
-              className="h-12 w-full rounded-xl border-2 border-primary/30 bg-secondary pl-11 pr-4 text-base text-tertiary shadow-[0_10px_30px_-15px] shadow-primary/40 outline-none placeholder:text-tertiary/40 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
-            />
-          </div>
-        </div>
+      {customers && customers.length > 0 && (
+        <p className="text-sm text-tertiary/50">
+          Total de clientes: <span className="font-semibold text-tertiary/80">{customers.length}</span>
+        </p>
       )}
 
       {isPending && (
@@ -80,7 +79,10 @@ const Customers = () => {
       )}
 
       {customers && customers.length > 0 && (
-        <CustomersTable customers={customers} />
+        <CustomersTable
+          customers={customers}
+          onEditClick={(customer) => setEditingCustomer(customer)}
+        />
       )}
     </div>
   )

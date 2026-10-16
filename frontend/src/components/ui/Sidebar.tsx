@@ -10,7 +10,6 @@ interface SidebarProps {
 }
 
 const menuItems: { key: sidebarItems; label: string; icon: string }[] = [
-    { key: "dashboard", label: "Tablero", icon: "bi-grid-1x2" },
     { key: "products", label: "Productos", icon: "bi-box-seam" },
     { key: "categories", label: "Categorías", icon: "bi-tags" },
     { key: "customers", label: "Clientes frecuentes", icon: "bi-people" },
@@ -123,18 +122,6 @@ const Sidebar = ({ activeItem, setActiveItem }: SidebarProps) => {
                                 </li>
                             ))}
                         </ul>
-                    </div>
-
-                    <div className="mt-auto flex flex-col gap-1 border-t border-tertiary/15 pt-4">
-                        <button
-                            type="button"
-                            onClick={() => selectItem("settings")}
-                            aria-current={activeItem === "settings" ? "page" : undefined}
-                            className={navItemClasses(activeItem === "settings")}
-                        >
-                            <i className="bi bi-sliders w-5 text-center text-base" aria-hidden="true" />
-                            Ajustes
-                        </button>
                     </div>
                 </nav>
 
